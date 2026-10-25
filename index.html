@@ -242,7 +242,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       </div></div>
       <div><h3>Полезно знать</h3>
       <ul>
-        <li>Глаголы даны в женском роде: «Skończyłam», «Zgubiłam się».</li>
+        <li id="kidNote"></li>
         <li>Учительницу называют «proszę pani», учителя «proszę pana».</li>
         <li>После 52 недель идут 19 запасных недель, всего 500 слов.</li>
       </ul></div>
@@ -258,6 +258,14 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
   <!-- НАСТРОЙКИ -->
   <section class="view" id="v-settings" hidden>
     <h2>Настройки</h2>
+    <div class="card help">
+      <div><h3>Кто учится</h3>
+      <p class="msg">Польские фразы от первого лица («Я устала / устал», «Я ученица / ученик») будут в нужном роде. Прогресс не меняется.</p></div>
+      <div class="seg" role="group" aria-label="Кто учится">
+        <button id="kidGirl" aria-pressed="true">Девочка</button>
+        <button id="kidBoy" aria-pressed="false">Мальчик</button>
+      </div>
+    </div>
     <div class="card help">
       <div><h3>Тема</h3></div>
       <div class="seg" role="group" aria-label="Тема">
@@ -561,7 +569,33 @@ const W = [
 ["Wesołych wakacji!","Весёлых каникул!","весо́уых вака́цьи"],["Do zobaczenia jutro","Увидимся завтра","до зобачэ́ня ю́тро"],["Uważaj na siebie","Береги себя","ува́жай на ще́бе"],
 ["Mamo, wróciłam!","Мама, я вернулась!","ма́мо, вручи́уам"]]]
 ];
-const DAYS=[];W.forEach(([t,items],wi)=>items.forEach(it=>DAYS.push({pl:it[0],ru:it[1],tr:it[2],week:wi+1,theme:t})));
+// фразы, которые зависят от того, мальчик или девочка: в W — вариант для девочки, здесь — для мальчика
+const BOY={
+"Skończyłam!":["Skończyłem!","Я закончил!","скончы́уэм"],
+"Wygrałam!":["Wygrałem!","Я выиграл!","выгра́уэм"],
+"Jesteś moją przyjaciółką?":["Jesteś moim przyjacielem?","Ты мой друг?","е́стэщь мо́им пшыяче́лем?"],
+"Przepraszam, nie chciałam":["Przepraszam, nie chciałem","Прости, я не хотел","пшепра́шам, не хча́уэм"],
+"Jestem szczęśliwa":["Jestem szczęśliwy","Я счастлив","е́стэм шченщьли́вы"],
+"Jestem smutna":["Jestem smutny","Мне грустно","е́стэм сму́тны"],
+"Jestem zmęczona":["Jestem zmęczony","Я устал","е́стэм змэнчо́ны"],
+"Jestem głodna":["Jestem głodny","Я голодный","е́стэм гуо́дны"],
+"Mam nową koleżankę":["Mam nowego kolegę","У меня новый друг","мам нове́го коле́ге"],
+"Zgubiłam się":["Zgubiłem się","Я потерялся","згуби́уэм ще"],
+"Jestem nowa":["Jestem nowy","Я новенький","е́стэм но́вы"],
+"Dziękuję, że mi pomogłaś":["Dziękuję, że mi pomogłeś","Спасибо, что помог мне","дженку́е, жэ ми помо́гуэщь"],
+"Jestem uczennicą":["Jestem uczniem","Я ученик","е́стэм у́чнем"],
+"Cieszę się!":["Cieszę się!","Я рад!","че́ше ще"],
+"Zapomniałam zeszytu":["Zapomniałem zeszytu","Я забыл тетрадь","запомня́уэм зэшы́ту"],
+"Już wiem!":["Już wiem!","Я понял!","юж вем"],
+"Brawo, córeczko!":["Brawo, synku!","Молодец, сынок!","бра́во, сы́нку"],
+"Mamo, wróciłam!":["Mamo, wróciłem!","Мама, я вернулся!","ма́мо, вручи́уэм"]};
+const BOY_THEME={"Я готова!":"Я готов!"};
+const DAYS=[];
+function fillDays(boy){
+  DAYS.length=0;
+  W.forEach(([t,items],wi)=>items.forEach(it=>{const m=boy&&BOY[it[0]]||it;DAYS.push({pl:m[0],ru:m[1],tr:m[2],week:wi+1,theme:boy&&BOY_THEME[t]||t})}));
+}
+fillDays(false);
 const N=DAYS.length;
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -569,6 +603,8 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const wkName=w=>w<=52?`Неделя ${w}`:`Запас ${w-52}`;
 
+let kid=store.get("kid","girl");         // девочка или мальчик — от этого зависят фразы от первого лица
+fillDays(kid==="boy");
 let done=new Set(store.get("done",[]));
 let weak=store.get("weak",{});          // слова, которые забылись в опросе: индекс → счёт
 let days=store.get("days",[]);          // даты (ГГГГ-ММ-ДД), когда отмечали слово, — для серии дней
@@ -600,6 +636,19 @@ function setTheme(t){
 setTheme(document.documentElement.dataset.theme);
 $("themeDark").onclick=()=>{store.set("theme","dark");setTheme("dark")};
 $("themeLight").onclick=()=>{store.set("theme","light");setTheme("light")};
+
+/* ---------- девочка / мальчик ---------- */
+function setKid(k,rerender){
+  kid=k;fillDays(k==="boy");
+  $("kidGirl").setAttribute("aria-pressed",k==="girl");$("kidBoy").setAttribute("aria-pressed",k==="boy");
+  $("kidNote").textContent=k==="boy"
+    ?"Фразы от первого лица даны для мальчика: «Skończyłem», «Zgubiłem się». Переключить можно в «Настройках»."
+    :"Фразы от первого лица даны для девочки: «Skończyłam», «Zgubiłam się». Переключить можно в «Настройках».";
+  if(rerender){const open=[...document.querySelectorAll("#weeks details")].map(d=>d.open);
+    build();document.querySelectorAll("#weeks details").forEach((d,i)=>d.open=open[i]);show(cur);progress();renderQuiz()}
+}
+$("kidGirl").onclick=()=>{store.set("kid","girl");setKid("girl",true)};
+$("kidBoy").onclick=()=>{store.set("kid","boy");setKid("boy",true)};
 
 /* ---------- главная ---------- */
 function show(i){
@@ -728,18 +777,18 @@ $("dirPl").onclick=()=>{quiz.dir="pl";store.set("qdir","pl");quiz.shown=false;re
 /* ---------- план ---------- */
 function build(){
   let k=0,html="";
-  W.forEach(([t,items],wi)=>{
+  W.forEach(([,items],wi)=>{
     if(wi===52)html+=`<div class="sep">Запасные недели</div>`;
-    html+=`<details><summary><span class="wk">${wkName(wi+1)}</span><span class="th">${esc(t)}</span><span class="cnt"></span></summary><ol>`;
-    items.forEach(it=>{html+=`<li><button class="item" data-i="${k}"><span class="n">${k+1}</span><span class="w"><b lang="pl">${esc(it[0])}</b><span>${esc(it[1])}</span></span><span class="ck"></span></button></li>`;k++});
+    html+=`<details><summary><span class="wk">${wkName(wi+1)}</span><span class="th">${esc(DAYS[k].theme)}</span><span class="cnt"></span></summary><ol>`;
+    items.forEach(()=>{const d=DAYS[k];html+=`<li><button class="item" data-i="${k}"><span class="n">${k+1}</span><span class="w"><b lang="pl">${esc(d.pl)}</b><span>${esc(d.ru)}</span></span><span class="ck"></span></button></li>`;k++});
     html+="</ol></details>";
   });
   $("weeks").innerHTML=html;
-  $("weeks").addEventListener("click",e=>{const r=e.target.closest("button.item");if(r){show(+r.dataset.i);tab("word")}});
+  $("weeks").onclick=e=>{const r=e.target.closest("button.item");if(r){show(+r.dataset.i);tab("word")}};
 }
 function openCurWeek(){document.querySelectorAll("#weeks details").forEach(det=>{if(det.querySelector(`button.item[data-i="${cur}"]`))det.open=true})}
 
-build();show(cur);progress();openCurWeek();
+setKid(kid,false);build();show(cur);progress();openCurWeek();
 tab(/^#(word|quiz|plan|help|settings)$/.test(location.hash)?location.hash.slice(1):"word");
 
 /* ---------- резервная копия и сброс ---------- */
