@@ -3,6 +3,7 @@ import js from '@eslint/js'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import i18next from 'eslint-plugin-i18next'
+// Internal file of the plugin (not in its public API): after a plugin update the path may disappear.
 import i18nextDefaults from 'eslint-plugin-i18next/lib/options/defaults.js'
 import reactHooks from 'eslint-plugin-react-hooks'
 import { reactRefresh } from 'eslint-plugin-react-refresh'
@@ -52,14 +53,21 @@ const layerConfigs = Object.entries(LAYER_RULES).map(([layer, { forbidden, packa
     'no-restricted-imports': [
       'error',
       {
-        paths: packages.map((name) => ({
-          name,
-          message: `src/${layer} must not depend on ${name} (architecture/react-port/modules.md).`,
-        })),
-        patterns: forbidden.map((target) => ({
-          regex: layerImport(target),
-          message: `src/${layer} must not import src/${target}: imports go only down the layers (architecture/react-port/modules.md).`,
-        })),
+        patterns: [
+          ...forbidden.map((target) => ({
+            regex: layerImport(target),
+            message: `src/${layer} must not import src/${target}: imports go only down the layers (architecture/react-port/modules.md).`,
+          })),
+          // Packages and their subpaths (`react-dom/client`, `react/jsx-runtime`).
+          ...(packages.length > 0
+            ? [
+                {
+                  regex: `^(${packages.join('|')})(/|$)`,
+                  message: `src/${layer} must not depend on these packages (architecture/react-port/modules.md).`,
+                },
+              ]
+            : []),
+        ],
       },
     ],
   },
@@ -95,6 +103,8 @@ export default defineConfig([
         'error',
         {
           mode: 'jsx-only',
+          // A template string in JSX (`{`text`}`) is checked like a plain string.
+          'should-validate-template': true,
           // Only attributes a user sees or hears are checked; `lang`, `role`, `to` and the like are data.
           'jsx-attributes': {
             include: [
