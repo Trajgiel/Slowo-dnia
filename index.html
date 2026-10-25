@@ -131,6 +131,13 @@ button.item.cur{background:var(--soft);box-shadow:inset 3px 0 0 var(--margin)}
 .copy a{color:var(--accent);font-weight:700;text-decoration:none}
 .copy a:hover{text-decoration:underline}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.contact{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:480px){.contact{grid-template-columns:1fr 1fr}}
+a.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 14px;box-sizing:border-box;
+  border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-weight:800;text-decoration:none;touch-action:manipulation}
+a.btn:active{transform:scale(.98)}
+a.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+a.btn svg{width:20px;height:20px;flex:none;fill:var(--accent)}
 textarea.code{font:600 .85rem/1.4 ui-monospace,Menlo,monospace;width:100%;box-sizing:border-box;min-height:84px;padding:10px 12px;resize:vertical;
   border:1.5px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);overflow-wrap:anywhere}
 textarea.code:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -307,6 +314,14 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <div><h3>Начать заново</h3>
       <p class="msg">Удалит все отметки «Выучили» и слова для повторения на этом устройстве. Сначала сохраните код выше, если прогресс может понадобиться.</p></div>
       <button id="reset" class="danger full">Сбросить прогресс</button>
+    </div>
+    <div class="card help">
+      <div><h3>Связаться с автором</h3>
+      <p class="msg">Есть вопрос, идея или нашли ошибку? Напишите мне.</p></div>
+      <div class="contact">
+        <a class="btn" href="https://t.me/Wlodzimierz93" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 3.6 2.9 10.8c-1.2.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.8c.3-1.3-.5-1.9-1.5-1.4zM8.6 13.5l9.5-6c.5-.3.9-.1.5.2l-8 7.3-.3 3.4-1.7-4.9z"/></svg>Telegram: @Wlodzimierz93</a>
+        <a class="btn" href="https://www.linkedin.com/in/trajgiel/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM8 19H5V9h3v10zM6.5 7.7a1.75 1.75 0 1 1 0-3.5 1.75 1.75 0 0 1 0 3.5zM19 19h-3v-5c0-1.2-.4-2-1.5-2-.8 0-1.3.6-1.5 1.1-.1.2-.1.5-.1.8V19h-3V9h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.4 1.3 3.4 4.1V19z"/></svg>LinkedIn</a>
+      </div>
     </div>
     <p class="copy">© 2026 <a href="https://github.com/Trajgiel" target="_blank" rel="noopener">Wlodzimierz Trajgiel</a>. Все права защищены.</p>
   </section>
