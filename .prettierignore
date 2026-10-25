@@ -1,0 +1,18 @@
+# Build output and test coverage
+dist/
+dist-ssr/
+coverage/
+
+# Dependencies and the npm lockfile (generated)
+node_modules/
+package-lock.json
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Local IDE settings (not committed)
+.idea/
+
+# Playwright output
+test-results/
+playwright-report/
