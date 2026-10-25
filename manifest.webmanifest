@@ -3,6 +3,7 @@
   "short_name": "Słowo dnia",
   "description": "Одно польское слово в день: перевод, транскрипция, озвучка и опрос.",
   "lang": "ru",
+  "developer": { "name": "Wlodzimierz Trajgiel", "url": "https://github.com/Trajgiel" },
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
