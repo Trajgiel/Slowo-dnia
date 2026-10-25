@@ -21,6 +21,10 @@ const NON_REQUEST_HOSTS = new Map([
   ['www.w3.org', 'XML namespaces (SVG, MathML, xlink) in react-dom'],
   ['react.dev', 'links in React error messages'],
   ['react.i18next.com', 'link in a react-i18next warning'],
+  [
+    'www.linkedin.com',
+    "the author's link: copyright comment in index.html, later links on the How screen; the app makes no request to it",
+  ],
 ])
 
 const root = fileURLToPath(new URL('..', import.meta.url))
