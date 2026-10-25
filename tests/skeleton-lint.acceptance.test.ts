@@ -18,7 +18,12 @@ import { describe, expect, it } from 'vitest'
 const root = fileURLToPath(new URL('..', import.meta.url))
 const eslint = new ESLint({
   cwd: root,
-  overrideConfig: tseslint.configs.disableTypeChecked as Linter.Config,
+  overrideConfig: [
+    tseslint.configs.disableTypeChecked,
+    // CI=true makes typescript-eslint infer "single run" mode, where TypeScript crashes inside
+    // i18next/no-literal-string on paths that do not exist on disk; opt out, as in local runs.
+    { languageOptions: { parserOptions: { disallowAutomaticSingleRunInference: true } } },
+  ],
 })
 
 async function lint(filePath: string, code: string): Promise<Linter.LintMessage[]> {
