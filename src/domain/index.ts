@@ -1,2 +1,12 @@
 // domain layer (architecture/react-port/modules.md in the workspace). Empty until its first module.
 export {}
+export * from './course'
+export * from './dates'
+export * from './deck'
+export * from './freeQuiz'
+export * from './legacyUser'
+export * from './progress'
+export * from './random'
+export * from './speechText'
+export * from './streak'
+export * from './weak'
