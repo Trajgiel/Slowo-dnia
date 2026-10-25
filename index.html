@@ -1,4 +1,14 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Słowo dnia">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f8fc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121826" media="(prefers-color-scheme: dark)">
+</head><body>
 <title>Польский на каждый день</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600;700&display=swap">
@@ -104,8 +114,8 @@ button.item.cur{background:var(--soft);box-shadow:inset 3px 0 0 var(--margin)}
 /* инструкция */
 .help{padding:18px;display:flex;flex-direction:column;gap:14px}
 .help h3{margin:0;font-size:1.05rem;font-weight:900}
-.help p,.help ul{margin:0}
-.help ul{padding-left:1.15em;display:flex;flex-direction:column;gap:6px}
+.help p,.help ul,.help ol{margin:0}
+.help ul,.help ol{padding-left:1.15em;display:flex;flex-direction:column;gap:6px}
 .sounds{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline}
 .sounds b{font-size:1.15rem;font-weight:900;color:var(--accent)}
 
@@ -206,6 +216,23 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
         <li>После 52 недель идут 19 запасных недель, всего 500 слов.</li>
         <li>Если польского голоса на телефоне нет: Настройки → Универсальный доступ → Устный контент → Голоса → Польский.</li>
       </ul></div>
+      <div><h3>Установить как приложение</h3>
+      <p class="msg">Иконка появится на экране телефона, приложение откроется на весь экран и будет работать даже без интернета.</p></div>
+      <div><h3>iPhone и iPad</h3>
+      <ol>
+        <li>Откройте эту страницу в <b>Safari</b>.</li>
+        <li>Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх).</li>
+        <li>Пролистайте вниз и выберите «На экран „Домой“».</li>
+        <li>Нажмите «Добавить» в правом верхнем углу.</li>
+      </ol></div>
+      <div><h3>Android</h3>
+      <ol>
+        <li>Откройте эту страницу в <b>Chrome</b>.</li>
+        <li>Нажмите меню «⋮» в правом верхнем углу.</li>
+        <li>Выберите «Установить приложение» (или «Добавить на главный экран»).</li>
+        <li>Подтвердите, нажав «Установить».</li>
+      </ol></div>
+      <p class="msg">Прогресс хранится на самом устройстве. Если раньше вы занимались в браузере, отметки в установленном приложении на iPhone начнутся заново.</p>
     </div>
   </section>
 </div>
@@ -626,6 +653,10 @@ tab(/^#(word|quiz|plan|help)$/.test(location.hash)?location.hash.slice(1):"word"
     show(touched?cur:nextIdx());progress();openCurWeek();renderQuiz();
   }catch(e){}
 })();
+
+/* PWA: офлайн-работа и установка на телефон */
+if("serviceWorker" in navigator&&location.protocol==="https:")
+  addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
 
 </body></html>
