@@ -1,2 +1,2 @@
-// data layer (architecture/react-port/modules.md in the workspace). Empty until its first module.
-export {}
+// data layer (architecture/react-port/modules.md in the workspace): course data and loader.
+export * from './loadCourse'

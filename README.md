@@ -41,6 +41,7 @@ Vite prints the local address; the app is served under the base path `/Slowo-dni
   - `storage/`, `data/`, `platform/`, `i18n/` — `localStorage`, course data, browser APIs, dictionaries
   - `domain/` — pure functions and types (no React, DOM or storage)
 - `src/i18n/locales/` — interface strings; text in JSX outside the dictionaries fails `npm run lint`
+- `scripts/extract-courses.ts` — one-off transfer of the course data from the prototype (`node scripts/extract-courses.ts <prototype-dir>`): writes `src/data/kidsCourse.ts`, `src/data/adult.json` and the test fixture `src/test/fixtures/prototype-courses.json`
 - `public/` — files published as is: `icons/`, `fonts/` (with their licenses), `LICENSE`
 - `.github/workflows/` — CI (`ci.yml`) and the pull request direction check (`pr.yml`)
 
