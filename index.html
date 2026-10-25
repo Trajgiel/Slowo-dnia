@@ -197,7 +197,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
   <!-- ОПРОС -->
   <section class="view" id="v-quiz" hidden>
     <h2>Опрос</h2>
-    <p class="lead">Случайное слово из выученных. Спросите, дочка отвечает, потом откройте ответ.</p>
+    <p class="lead">Случайное слово из выученных. Спросите ребёнка, дайте ответить, потом откройте ответ.</p>
     <div class="seg" role="group" aria-label="Направление">
       <button id="dirRu" aria-pressed="true">Русский → польский</button>
       <button id="dirPl" aria-pressed="false">Польский → русский</button>
@@ -220,13 +220,13 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <ul>
         <li>Утром откройте главную вкладку: там уже новое слово.</li>
         <li>Нажмите «Послушать», повторите вместе 3–4 раза.</li>
-        <li>Вечером спросите: «Как по-польски…?» Если ответила, нажмите «Выучили».</li>
+        <li>Вечером спросите: «Как по-польски…?» Если ребёнок ответил, нажмите «Выучили».</li>
         <li>Завтра страница сама откроется на следующем слове.</li>
       </ul></div>
       <div><h3>Повторение</h3>
       <ul>
         <li>Раз в неделю устраивайте опрос на вкладке «Опрос».</li>
-        <li>Если слово забылось, нажмите «Не вспомнила»: оно вернётся в опрос чаще.</li>
+        <li>Если слово забылось, нажмите «Не вспомнили»: оно вернётся в опрос чаще.</li>
         <li>Играйте: карточки, «угадай по рисунку», показать предмет дома.</li>
       </ul></div>
       <div><h3>Произношение</h3>
@@ -709,9 +709,9 @@ function renderQuiz(){
     <div class="ask">${ruFirst?"Как это по-польски?":"Что это значит?"}</div>${q}
     ${ruFirst?"":`<button id="qSpeak" class="ghost">🔊 Послушать</button>`}
     ${quiz.shown?`<div class="ans">${a}${ruFirst?`<button id="qSpeak" class="ghost">🔊 Послушать</button>`:""}</div>
-      <div class="qbtns"><button id="qNo">Не вспомнила</button><button id="qYes" class="isdone">Ответила ✓</button></div>`
+      <div class="qbtns"><button id="qNo">Не вспомнили</button><button id="qYes" class="isdone">Ответили ✓</button></div>`
       :`<button id="qShow" class="primary full">Показать ответ</button>`}
-    <div class="score">${quiz.asked?`Ответила ${quiz.right} из ${quiz.asked}`:`В опросе ${done.size} ${plural(done.size)}`}</div>
+    <div class="score">${quiz.asked?`Правильно: ${quiz.right} из ${quiz.asked}`:`В опросе ${done.size} ${plural(done.size)}`}</div>
     <div class="msg" id="qmsg" hidden></div>
   </div>
   <button id="qSkip" class="ghost">Другое слово</button>`;
