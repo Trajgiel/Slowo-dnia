@@ -2,7 +2,8 @@
 // Acceptance, SD-6 (skeleton with CI), criteria:
 // - an import against the direction of the layers fails `npm run lint`
 //   (architecture/react-port/modules.md, "Layers and direction of dependencies");
-// - interface text in JSX outside the dictionary fails `npm run lint`
+// - the same holds for subpaths of the forbidden packages (react-dom/client, react/jsx-runtime);
+// - interface text in JSX outside the dictionary (template strings included) fails `npm run lint`
 //   (architecture/react-port/i18n.md, "No strings in markup").
 // Probe code is linted with the repository's eslint.config.js (the one `npm run lint` uses) at
 // file paths inside src/ that do not exist, so no violating file ever lands in the repository.
@@ -38,6 +39,8 @@ describe('layers: imports go only down (no-restricted-imports)', () => {
   it.each([
     // from the task: domain imports neither react nor other layers; features do not import storage
     ['src/domain/qa-probe.ts', 'react'],
+    ['src/domain/qa-probe.ts', 'react-dom/client'],
+    ['src/domain/qa-probe.ts', 'react/jsx-runtime'],
     ['src/domain/qa-probe.ts', '../state'],
     ['src/domain/qa-probe.ts', '../storage/keys'],
     ['src/domain/qa-probe.ts', '../i18n'],
@@ -45,6 +48,7 @@ describe('layers: imports go only down (no-restricted-imports)', () => {
     ['src/features/word/qa-probe.tsx', '../../storage/keys'],
     // from the architecture: storage knows neither state, features nor React
     ['src/storage/qa-probe.ts', 'react'],
+    ['src/storage/qa-probe.ts', 'react-dom/client'],
     ['src/storage/qa-probe.ts', '../state'],
     ['src/storage/qa-probe.ts', '../features'],
     // upwards in general
@@ -63,6 +67,7 @@ describe('layers: imports go only down (no-restricted-imports)', () => {
     ['src/features/qa-probe.tsx', 'react'],
     ['src/state/qa-probe.ts', '../storage'],
     ['src/storage/qa-probe.ts', '../domain'],
+    ['src/storage/qa-probe.ts', 'i18next'],
     ['src/domain/qa-probe.ts', './dates'],
   ])('%s importing %s is allowed', async (file, target) => {
     const messages = await lint(file, `import '${target}'\n`)
@@ -79,6 +84,7 @@ describe('no interface text in JSX (i18next/no-literal-string)', () => {
     ['text in an element', `<p title={t('appName')}>Выучили</p>`],
     ['Latin text in an element', `<p title={t('appName')}>Next word</p>`],
     ['a visible attribute', `<button aria-label="Назад">{t('appName')}</button>`],
+    ['a template string', "<p title={t('appName')}>{`Далее`}</p>"],
     ['a placeholder', `<input placeholder="Код" title={t('appName')} />`],
   ])('%s is an error', async (_case, jsx) => {
     const messages = await lint('src/features/qa-probe.tsx', component(jsx))
