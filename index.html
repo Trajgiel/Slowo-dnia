@@ -364,7 +364,8 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
     </div>
     <div class="card help">
       <div><h3>Резервная копия прогресса</h3>
-      <p class="msg">Прогресс хранится только на этом устройстве. Сохраните код (например, в Заметки или отправьте себе), чтобы восстановить отметки на новом телефоне, в установленном приложении или после очистки браузера. Код сохраняет прогресс обоих курсов.</p></div>
+      <p class="msg">Прогресс хранится только на этом устройстве. Сохраните код (например, в Заметки или отправьте себе), чтобы восстановить отметки на новом телефоне, в установленном приложении или после очистки браузера.</p>
+      <p class="msg" id="bkCourse"></p></div>
       <div class="row2">
         <button id="bkCopy">Скопировать код</button>
         <button id="bkShare">Отправить…</button>
@@ -375,7 +376,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
     </div>
     <div class="card help">
       <div><h3>Начать заново</h3>
-      <p class="msg">Удалит отметки «Выучили», слова для повторения, серию дней и результаты опроса текущего курса. Другой курс не затрагивается. Сначала сохраните код выше, если прогресс может понадобиться.</p></div>
+      <p class="msg" id="resetHint"></p></div>
       <button id="reset" class="danger full">Сбросить прогресс</button>
     </div>
     <div class="card help">
@@ -754,11 +755,15 @@ async function setCourse(c){
   let data;
   try{data=await loadCourseData(c)}catch(e){toast("Не удалось загрузить курс. Проверьте интернет и попробуйте ещё раз.");return false}
   course=c;CW=data;store.set("course",c);loadState();
+  $("bkMsg").textContent="";$("bkCode").value="";         // код и сообщение относились к прошлому курсу
   quiz.free={idx:null,dir:"ru",recent:[]};quiz.shown=false;
   renderCourse();return true;
 }
 function renderCourse(){
   $("courseChip").textContent=COURSES[course].name;
+  const cn=`«${COURSES[course].name}»`;
+  $("bkCourse").innerHTML=`Сейчас выбран <b>${cn}</b>: код сохраняет и восстанавливает прогресс только этого курса. Для другого курса переключите курс выше и сохраните отдельный код.`;
+  $("resetHint").innerHTML=`Удалит отметки «Выучили», слова для повторения, серию дней и результаты опроса курса <b>${cn}</b>. Другой курс не затрагивается. Сначала сохраните код выше, если прогресс может понадобиться.`;
   $("courseKids").setAttribute("aria-pressed",course==="kids");$("courseAdult").setAttribute("aria-pressed",course==="adult");
   document.querySelectorAll("[data-course]").forEach(el=>el.hidden=el.dataset.course!==course);
   setKid(kid,false);build();show(cur);progress();openCurWeek();renderQuiz();
@@ -1007,8 +1012,9 @@ function openCurWeek(){document.querySelectorAll("#weeks details").forEach(det=>
   tab(/^#(word|quiz|plan|help|settings)$/.test(location.hash)?location.hash.slice(1):"word");
 })();
 
-/* ---------- резервная копия и сброс ----------
-   Код SD2: base64url(JSON) с прогрессом обоих курсов. Старый код SD1 (только детский курс) тоже принимается. */
+/* ---------- резервная копия и сброс: только выбранный курс ----------
+   Код SD3.<k|a>.<base64url(JSON)> — прогресс одного курса (k — детский, a — для взрослых).
+   Старые коды тоже принимаются: SD2 (оба курса — берётся часть выбранного) и SD1 (только детский). */
 const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=str=>Uint8Array.from(atob(str.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
 const toBits=arr=>{const bits=new Uint8Array(Math.ceil((Math.max(-1,...arr)+1)/8));arr.forEach(i=>bits[i>>3]|=1<<(i&7));return b64(bits)};
@@ -1017,18 +1023,24 @@ const cleanWeak=w=>{const r={};if(w&&typeof w==="object")Object.entries(w).forEa
 const packDays=d=>d.slice(-60).map(x=>x.replace(/-/g,"")).join(",");
 const unpackDays=str=>str?str.split(",").filter(x=>/^\d{8}$/.test(x)).map(x=>`${x.slice(0,4)}-${x.slice(4,6)}-${x.slice(6)}`):[];
 function packCourse(c){const p=COURSES[c].prefix;return{d:toBits(store.get(p+"done",[])),w:store.get(p+"weak",{}),s:packDays(store.get(p+"days",[]))}}
-function exportCode(){save();return"SD2."+b64(new TextEncoder().encode(JSON.stringify({v:2,k:packCourse("kids"),a:packCourse("adult")})))}
+const CODE_ID={kids:"k",adult:"a"};
+const unpackCourse=x=>x&&typeof x==="object"?{done:fromBits(x.d||""),weak:cleanWeak(x.w),days:unpackDays(x.s)}:null;
+function exportCode(){save();return`SD3.${CODE_ID[course]}.`+b64(new TextEncoder().encode(JSON.stringify(packCourse(course))))}
+// возвращает {kids, adult}: прогресс тех курсов, что есть в коде
 function importCode(code){
   const c=code.replace(/\s+/g,"");
+  if(c.startsWith("SD3.")){
+    const[,id,data]=c.split(".");const cc=Object.keys(CODE_ID).find(k=>CODE_ID[k]===id);if(!cc||!data)throw 0;
+    return{[cc]:unpackCourse(JSON.parse(new TextDecoder().decode(unb64(data))))};
+  }
   if(c.startsWith("SD2.")){
     const j=JSON.parse(new TextDecoder().decode(unb64(c.slice(4))));if(j.v!==2)throw 0;
-    const un=x=>x&&typeof x==="object"?{done:fromBits(x.d||""),weak:cleanWeak(x.w),days:unpackDays(x.s)}:null;
-    return{kids:un(j.k),adult:un(j.a)};
+    return{kids:unpackCourse(j.k),adult:unpackCourse(j.a)};
   }
   const p=c.split(".");
   if(p[0]!=="SD1"||p.length!==4)throw 0;
   const w={};if(p[2])p[2].split(",").forEach(x=>{const[i,n]=x.split(":");w[i]=n});
-  return{kids:{done:fromBits(p[1]),weak:cleanWeak(w),days:unpackDays(p[3])},adult:null};
+  return{kids:{done:fromBits(p[1]),weak:cleanWeak(w),days:unpackDays(p[3])}};
 }
 function writeCourse(c,x){
   const p=COURSES[c].prefix;
@@ -1047,16 +1059,20 @@ function twoStep(btn,label,armedLabel,action){
 const bkMsg=t=>{$("bkMsg").textContent=t};
 $("bkCopy").onclick=async()=>{
   const code=exportCode(),ta=$("bkCode");ta.value=code;bkMsg("Код — в поле ниже.");
-  try{await navigator.clipboard.writeText(code);bkMsg(`Код скопирован (выучено ${done.size} ${plural(done.size)}). Сохраните его в надёжном месте.`)}
+  try{await navigator.clipboard.writeText(code);bkMsg(`Код курса «${COURSES[course].name}» скопирован (выучено ${done.size} ${plural(done.size)}). Сохраните его в надёжном месте.`)}
   catch(e){ta.focus();ta.select();bkMsg("Код выделен в поле ниже — скопируйте его.")}
 };
-if(navigator.share)$("bkShare").onclick=()=>navigator.share({title:"Słowo dnia — прогресс",text:exportCode()}).catch(()=>{});
+if(navigator.share)$("bkShare").onclick=()=>navigator.share({title:`Słowo dnia — прогресс, ${COURSES[course].name.toLowerCase()}`,text:exportCode()}).catch(()=>{});
 else{$("bkShare").hidden=true;$("bkCopy").parentElement.style.gridTemplateColumns="1fr"}
-twoStep($("bkRestore"),"Восстановить из кода","Заменить текущий прогресс? Нажмите ещё раз",()=>{
+twoStep($("bkRestore"),"Восстановить из кода","Заменить прогресс этого курса? Нажмите ещё раз",()=>{
   let x;try{x=importCode($("bkCode").value)}catch(e){bkMsg("Не получилось прочитать код. Вставьте его целиком, начиная с «SD».");return}
-  const parts=[];
-  ["kids","adult"].forEach(c=>{if(x[c]){writeCourse(c,x[c]);parts.push(`${COURSES[c].name.toLowerCase()} — ${x[c].done.length} ${plural(x[c].done.length)}`)}});
-  reloadCourse();bkMsg(`Прогресс восстановлен: ${parts.join(", ")}.`);
+  const mine=x[course];
+  if(!mine){                                   // код от другого курса: номера слов там другие, поэтому не смешиваем
+    const other=Object.keys(x).find(k=>x[k]);
+    bkMsg(other?`Это код курса «${COURSES[other].name}». Переключите курс выше на «${COURSES[other].name}» и восстановите код там.`
+      :`В этом коде нет прогресса курса «${COURSES[course].name}».`);return}
+  writeCourse(course,mine);reloadCourse();
+  bkMsg(`Прогресс курса «${COURSES[course].name}» восстановлен: выучено ${mine.done.length} ${plural(mine.done.length)}.`);
 });
 twoStep($("reset"),"Сбросить прогресс","Точно удалить все отметки? Нажмите ещё раз",()=>{
   writeCourse(course,{done:[],weak:{},days:[]});reloadCourse();bkMsg("");toast("Прогресс курса сброшен. Начинаем с первого слова!");
