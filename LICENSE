@@ -20,6 +20,10 @@ https://trajgiel.github.io/Slowo-dnia/ для личного обучения.
 
 Для получения разрешения свяжитесь с автором: https://github.com/Trajgiel
 
+Исключение: шрифты в папке fonts/ (Nunito и Caveat) не принадлежат автору
+и распространяются по лицензии SIL Open Font License 1.1 — см. файлы
+fonts/OFL-nunito.txt и fonts/OFL-caveat.txt.
+
 —— English ——
 
 The "Słowo dnia" application (including its source code, texts, word
@@ -38,3 +42,7 @@ the rights expressly provided by the GitHub Terms of Service (viewing and
 forking on the GitHub platform).
 
 To request permission, contact the author: https://github.com/Trajgiel
+
+Exception: the fonts in the fonts/ folder (Nunito and Caveat) are not owned
+by the author and are distributed under the SIL Open Font License 1.1 —
+see fonts/OFL-nunito.txt and fonts/OFL-caveat.txt.

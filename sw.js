@@ -1,7 +1,7 @@
 /* Service worker: приложение работает без интернета.
    Страница — сначала из сети (чтобы обновления приходили сразу), при офлайне — из кэша.
-   Иконки и шрифты — сначала из кэша. При изменении файлов поднимайте версию VERSION. */
-const VERSION = "v4";
+   Иконки и шрифты (свои, из fonts/) — сначала из кэша. При изменении файлов поднимайте версию VERSION. */
+const VERSION = "v5";
 const CACHE = `slowo-dnia-${VERSION}`;
 const CORE = [
   "./",
@@ -9,7 +9,13 @@ const CORE = [
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/apple-touch-icon.png"
+  "./icons/apple-touch-icon.png",
+  "./fonts/nunito-cyrillic.woff2",
+  "./fonts/nunito-latin.woff2",
+  "./fonts/nunito-latin-ext.woff2",
+  "./fonts/caveat-cyrillic.woff2",
+  "./fonts/caveat-latin.woff2",
+  "./fonts/caveat-latin-ext.woff2"
 ];
 
 self.addEventListener("install", e => {
@@ -37,13 +43,11 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  const url = new URL(req.url);
-  const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
-  if (url.origin !== location.origin && !isFont) return;
+  if (new URL(req.url).origin !== location.origin) return;
 
   e.respondWith(
     caches.match(req).then(hit => hit || fetch(req).then(res => {
-      if (res.ok || res.type === "opaque") { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }))
   );

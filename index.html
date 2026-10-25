@@ -5,16 +5,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Słowo dnia">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#121826" id="themeColor">
 <script>/* тема до отрисовки, чтобы не мигало: по умолчанию тёмная */
 (()=>{let t;try{t=JSON.parse(localStorage.getItem("theme"))}catch(e){}
   t=t==="light"?"light":"dark";document.documentElement.dataset.theme=t;
   document.getElementById("themeColor").content=t==="light"?"#f6f8fc":"#121826"})();</script>
-</head><body>
 <title>Польский на каждый день</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600;700&display=swap">
+<style>
+/* шрифты лежат в репозитории (fonts/, лицензия SIL OFL) — без запросов к Google и с работой офлайн */
+@font-face{font-family:"Caveat";font-style:normal;font-weight:600 700;font-display:swap;src:url(fonts/caveat-cyrillic.woff2) format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:"Caveat";font-style:normal;font-weight:600 700;font-display:swap;src:url(fonts/caveat-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:"Caveat";font-style:normal;font-weight:600 700;font-display:swap;src:url(fonts/caveat-latin.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:"Nunito";font-style:normal;font-weight:400 900;font-display:swap;src:url(fonts/nunito-cyrillic.woff2) format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:"Nunito";font-style:normal;font-weight:400 900;font-display:swap;src:url(fonts/nunito-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:"Nunito";font-style:normal;font-weight:400 900;font-display:swap;src:url(fonts/nunito-latin.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+</style>
+</head><body>
 <style>
 /* Layout: тетрадь в клетку; одна колонка до 640px; нижняя панель вкладок как в iOS, с учётом safe-area */
 :root{
@@ -85,7 +92,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--accent)
 /* опрос */
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--soft);padding:4px;border-radius:14px}
 .seg button{border:0;background:transparent;min-height:42px;font-size:.92rem;border-radius:11px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .quiz{padding:24px 18px;display:flex;flex-direction:column;gap:14px;text-align:center;align-items:center}
 .ask{font-size:.9rem;color:var(--muted);font-weight:700}
 .q{font-size:clamp(1.8rem,8vw,2.5rem);font-weight:900;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;margin:0}
@@ -123,6 +130,23 @@ button.item.cur{background:var(--soft);box-shadow:inset 3px 0 0 var(--margin)}
 .copy{margin:0;text-align:center;font-size:.8rem;color:var(--muted)}
 .copy a{color:var(--accent);font-weight:700;text-decoration:none}
 .copy a:hover{text-decoration:underline}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+textarea.code{font:600 .85rem/1.4 ui-monospace,Menlo,monospace;width:100%;box-sizing:border-box;min-height:84px;padding:10px 12px;resize:vertical;
+  border:1.5px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);overflow-wrap:anywhere}
+textarea.code:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.danger{color:var(--margin);border-color:var(--margin)}
+button.danger.armed{background:var(--margin);color:var(--card)}
+.streak{font-weight:800}
+
+/* всплывающая похвала над вкладками */
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,10px);z-index:25;
+  max-width:min(92vw,420px);padding:12px 18px;border-radius:16px;background:var(--done);color:var(--card);font-weight:800;text-align:center;
+  box-shadow:0 10px 30px -12px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* полоса под строкой состояния iPhone в установленном приложении (status-bar-style: black-translucent, текст белый) */
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+:root[data-theme="light"] body::before{background:var(--ink)}
 .sounds{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline}
 .sounds b{font-size:1.15rem;font-weight:900;color:var(--accent)}
 
@@ -165,7 +189,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
       <div class="msg" id="weekTitle"></div>
       <div class="weekdots" id="weekDots"></div>
-      <div class="msg" id="sync"></div>
+      <div class="msg streak" id="streak" hidden></div>
     </div>
     <div class="msg" id="speakmsg" hidden></div>
   </section>
@@ -221,7 +245,12 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
         <li>Глаголы даны в женском роде: «Skończyłam», «Zgubiłam się».</li>
         <li>Учительницу называют «proszę pani», учителя «proszę pana».</li>
         <li>После 52 недель идут 19 запасных недель, всего 500 слов.</li>
-        <li>Если польского голоса на телефоне нет: Настройки → Универсальный доступ → Устный контент → Голоса → Польский.</li>
+      </ul></div>
+      <div><h3>Если нет польского голоса</h3>
+      <ul>
+        <li><b>iPhone и iPad:</b> Настройки → Универсальный доступ → Устный контент → Голоса → Польский → скачайте любой голос.</li>
+        <li><b>Android:</b> Настройки → Специальные возможности (или Система → Язык и ввод) → Синтез речи → у «Синтезатора речи Google» нажмите ⚙ → Установка голосовых данных → Polski.</li>
+        <li>После установки голоса закройте и снова откройте приложение.</li>
       </ul></div>
     </div>
   </section>
@@ -253,11 +282,29 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
         <li>Выберите «Установить приложение» (или «Добавить на главный экран»).</li>
         <li>Подтвердите, нажав «Установить».</li>
       </ol></div>
-      <p class="msg">Прогресс хранится на самом устройстве. Если раньше вы занимались в браузере, отметки в установленном приложении на iPhone начнутся заново.</p>
+      <p class="msg">Прогресс хранится на самом устройстве. На iPhone установленное приложение и Safari хранят его раздельно — перенесите отметки через «Резервную копию» ниже.</p>
+    </div>
+    <div class="card help">
+      <div><h3>Резервная копия прогресса</h3>
+      <p class="msg">Прогресс хранится только на этом устройстве. Сохраните код (например, в Заметки или отправьте себе), чтобы восстановить отметки на новом телефоне, в установленном приложении или после очистки браузера.</p></div>
+      <div class="row2">
+        <button id="bkCopy">Скопировать код</button>
+        <button id="bkShare">Отправить…</button>
+      </div>
+      <textarea class="code" id="bkCode" rows="3" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Код прогресса" placeholder="Сюда можно вставить сохранённый код"></textarea>
+      <button id="bkRestore" class="primary full">Восстановить из кода</button>
+      <div class="msg" id="bkMsg" role="status"></div>
+    </div>
+    <div class="card help">
+      <div><h3>Начать заново</h3>
+      <p class="msg">Удалит все отметки «Выучили» и слова для повторения на этом устройстве. Сначала сохраните код выше, если прогресс может понадобиться.</p></div>
+      <button id="reset" class="danger full">Сбросить прогресс</button>
     </div>
     <p class="copy">© 2026 <a href="https://github.com/Trajgiel" target="_blank" rel="noopener">Wlodzimierz Trajgiel</a>. Все права защищены.</p>
   </section>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <nav class="tabs" role="tablist">
   <div class="in">
@@ -524,7 +571,7 @@ const wkName=w=>w<=52?`Неделя ${w}`:`Запас ${w-52}`;
 
 let done=new Set(store.get("done",[]));
 let weak=store.get("weak",{});          // слова, которые забылись в опросе: индекс → счёт
-let docRef=null,touched=false;
+let days=store.get("days",[]);          // даты (ГГГГ-ММ-ДД), когда отмечали слово, — для серии дней
 
 function nextIdx(){for(let i=0;i<N;i++)if(!done.has(i))return i;return N-1}  // первое невыученное с начала
 let cur=nextIdx();
@@ -579,24 +626,48 @@ function weekDots(){
 function progress(){
   $("sDone").textContent=done.size;$("sLeft").textContent=N-done.size;
   $("sPct").textContent=Math.round(done.size/N*100)+"%";$("barFill").style.width=(done.size/N*100)+"%";
+  renderStreak();
   document.querySelectorAll("button.item").forEach(r=>{r.querySelector(".ck").textContent=done.has(+r.dataset.i)?"✓":""});
   document.querySelectorAll("#weeks details").forEach(det=>{const rows=[...det.querySelectorAll("button.item")];
     const c=rows.filter(r=>done.has(+r.dataset.i)).length,el=det.querySelector(".cnt");
     el.textContent=`${c}/${rows.length}`;el.classList.toggle("full",c===rows.length)});
   weekDots();
 }
-let saving=Promise.resolve();
-function save(){
-  const arr=[...done].sort((a,b)=>a-b);store.set("done",arr);store.set("weak",weak);
-  if(docRef)saving=saving.then(()=>docRef.set({done:arr,weak,updated:new Date().toISOString()}))
-    .then(()=>{$("sync").textContent="Прогресс сохраняется на всех устройствах"})
-    .catch(()=>{$("sync").textContent="Сохранено только на этом устройстве"});
-}
-$("prev").onclick=()=>{touched=true;show(cur-1)};
-$("next").onclick=()=>{touched=true;show(cur+1)};
+function save(){store.set("done",[...done].sort((a,b)=>a-b));store.set("weak",weak);store.set("days",days)}
+$("prev").onclick=()=>show(cur-1);
+$("next").onclick=()=>show(cur+1);
 $("toNew").onclick=()=>show(nextIdx());
-$("weekDots").onclick=e=>{const b=e.target.closest("button[data-i]");if(b){touched=true;show(+b.dataset.i)}};
-$("done").onclick=()=>{touched=true;done.has(cur)?done.delete(cur):done.add(cur);save();show(cur);progress()};
+$("weekDots").onclick=e=>{const b=e.target.closest("button[data-i]");if(b)show(+b.dataset.i)};
+$("done").onclick=()=>{
+  if(done.has(cur))done.delete(cur);
+  else{done.add(cur);const t=dayKey(new Date());if(!days.includes(t)){days.push(t);days=days.slice(-400)}praise(cur)}
+  save();show(cur);progress();
+};
+
+/* серия дней подряд */
+const dayKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const pluralDays=n=>{const a=n%10,b=n%100;if(a===1&&b!==11)return"день";if(a>=2&&a<=4&&(b<12||b>14))return"дня";return"дней"};
+function streak(){
+  const set=new Set(days),d=new Date(),today=set.has(dayKey(d));
+  if(!today)d.setDate(d.getDate()-1);          // сегодня ещё не занимались — серия жива, если был вчерашний день
+  let n=0;while(set.has(dayKey(d))){n++;d.setDate(d.getDate()-1)}
+  return{n,today};
+}
+function renderStreak(){
+  const el=$("streak"),{n,today}=streak();
+  el.hidden=!days.length;
+  if(!n)el.textContent="Отметьте слово сегодня, чтобы начать новую серию 🔥";
+  else el.textContent=`🔥 ${n} ${pluralDays(n)} подряд`+(today?"":" — отметьте слово сегодня, чтобы не прервать серию");
+}
+
+/* похвала: выучена вся неделя или все слова */
+let toastTimer;
+function toast(text){const t=$("toast");t.textContent=text;t.classList.add("on");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("on"),3500)}
+function praise(i){
+  if(done.size===N){toast("🏆 Все 500 слов выучены! Gratulacje!");return}
+  const w=DAYS[i].week,week=DAYS.map((d,k)=>k).filter(k=>DAYS[k].week===w);
+  if(week.every(k=>done.has(k)))toast(`🎉 ${wkName(w)} «${DAYS[i].theme}» выучена! Brawo!`);
+}
 
 /* озвучка */
 function speak(text,msgEl){
@@ -604,7 +675,7 @@ function speak(text,msgEl){
     const s=window.speechSynthesis;if(!s)throw 0;
     s.cancel();const u=new SpeechSynthesisUtterance(text.replace(/…/g,"").replace(/\s\/\s/g,", "));u.lang="pl-PL";u.rate=.8;
     const v=s.getVoices().find(v=>/^pl/i.test(v.lang));if(v)u.voice=v;
-    else if(msgEl){msgEl.hidden=false;msgEl.textContent="Польский голос не найден. Как добавить его на iPhone — на вкладке «Как»."}
+    else if(msgEl){msgEl.hidden=false;msgEl.textContent="Польский голос не найден. Как добавить его на iPhone и Android — на вкладке «Как»."}
     s.speak(u);
   }catch(e){if(msgEl){msgEl.hidden=false;msgEl.textContent="Озвучка недоступна в этом браузере. Ориентируйтесь на транскрипцию."}}
 }
@@ -664,29 +735,60 @@ function build(){
     html+="</ol></details>";
   });
   $("weeks").innerHTML=html;
-  $("weeks").addEventListener("click",e=>{const r=e.target.closest("button.item");if(r){touched=true;show(+r.dataset.i);tab("word")}});
+  $("weeks").addEventListener("click",e=>{const r=e.target.closest("button.item");if(r){show(+r.dataset.i);tab("word")}});
 }
 function openCurWeek(){document.querySelectorAll("#weeks details").forEach(det=>{if(det.querySelector(`button.item[data-i="${cur}"]`))det.open=true})}
 
 build();show(cur);progress();openCurWeek();
 tab(/^#(word|quiz|plan|help|settings)$/.test(location.hash)?location.hash.slice(1):"word");
 
-/* прогресс хранится на странице — один и тот же на телефоне и компьютере */
-(async()=>{
-  try{
-    const db=await window.claude?.use?.("db");if(!db)return;
-    docRef=db.doc("progress/main");
-    const snap=await docRef.get();
-    if(snap.exists){
-      const x=snap.data();
-      if(Array.isArray(x.done))done=new Set(x.done.filter(n=>Number.isInteger(n)&&n>=0&&n<N));
-      if(x.weak&&typeof x.weak==="object")weak={...x.weak};
-      store.set("done",[...done]);store.set("weak",weak);
-    }else if(done.size)save();
-    $("sync").textContent="Прогресс сохраняется на всех устройствах";
-    show(touched?cur:nextIdx());progress();openCurWeek();renderQuiz();
-  }catch(e){}
-})();
+/* ---------- резервная копия и сброс ---------- */
+// код: SD1.<выученные слова битами, base64url>.<забытые слова i:счёт,…>.<дни серии ГГГГММДД,…>
+const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb64=str=>Uint8Array.from(atob(str.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+function exportCode(){
+  const bits=new Uint8Array(Math.ceil(N/8));done.forEach(i=>bits[i>>3]|=1<<(i&7));
+  const w=Object.entries(weak).filter(([,c])=>c>0).map(([i,c])=>`${i}:${c}`).join(",");
+  const d=days.slice(-60).map(x=>x.replace(/-/g,"")).join(",");
+  return`SD1.${b64(bits)}.${w}.${d}`;
+}
+function importCode(code){
+  const p=code.replace(/\s+/g,"").split(".");
+  if(p[0]!=="SD1"||p.length!==4)throw 0;
+  const bits=unb64(p[1]),nd=new Set();
+  for(let i=0;i<N;i++)if(bits[i>>3]&(1<<(i&7)))nd.add(i);
+  const nw={};if(p[2])p[2].split(",").forEach(x=>{const[i,c]=x.split(":").map(Number);if(Number.isInteger(i)&&i>=0&&i<N&&c>0)nw[i]=Math.min(c,99)});
+  const ndays=p[3]?p[3].split(",").filter(x=>/^\d{8}$/.test(x)).map(x=>`${x.slice(0,4)}-${x.slice(4,6)}-${x.slice(6)}`):[];
+  return{done:nd,weak:nw,days:ndays};
+}
+function applyProgress(x){
+  done=x.done;weak=x.weak;days=x.days;save();
+  quiz.idx=null;quiz.asked=0;quiz.right=0;quiz.recent=[];
+  show(nextIdx());progress();openCurWeek();renderQuiz();
+}
+// опасные кнопки срабатывают со второго нажатия
+function twoStep(btn,label,armedLabel,action){
+  let t;btn.onclick=()=>{
+    if(!btn.classList.contains("armed")){btn.classList.add("armed");btn.textContent=armedLabel;
+      t=setTimeout(()=>{btn.classList.remove("armed");btn.textContent=label},5000);return}
+    clearTimeout(t);btn.classList.remove("armed");btn.textContent=label;action();
+  };
+}
+const bkMsg=t=>{$("bkMsg").textContent=t};
+$("bkCopy").onclick=async()=>{
+  const code=exportCode(),ta=$("bkCode");ta.value=code;bkMsg("Код — в поле ниже.");
+  try{await navigator.clipboard.writeText(code);bkMsg(`Код скопирован (выучено ${done.size} ${plural(done.size)}). Сохраните его в надёжном месте.`)}
+  catch(e){ta.focus();ta.select();bkMsg("Код выделен в поле ниже — скопируйте его.")}
+};
+if(navigator.share)$("bkShare").onclick=()=>navigator.share({title:"Słowo dnia — прогресс",text:exportCode()}).catch(()=>{});
+else{$("bkShare").hidden=true;$("bkCopy").parentElement.style.gridTemplateColumns="1fr"}
+twoStep($("bkRestore"),"Восстановить из кода","Заменить текущий прогресс? Нажмите ещё раз",()=>{
+  let x;try{x=importCode($("bkCode").value)}catch(e){bkMsg("Не получилось прочитать код. Вставьте его целиком, начиная с «SD1.».");return}
+  applyProgress(x);bkMsg(`Прогресс восстановлен: выучено ${x.done.size} ${plural(x.done.size)}.`);
+});
+twoStep($("reset"),"Сбросить прогресс","Точно удалить все отметки? Нажмите ещё раз",()=>{
+  applyProgress({done:new Set(),weak:{},days:[]});bkMsg("");toast("Прогресс сброшен. Начинаем с первого слова!");
+});
 
 /* PWA: офлайн-работа и установка на телефон */
 if("serviceWorker" in navigator&&location.protocol==="https:")
