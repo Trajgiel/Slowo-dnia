@@ -1,0 +1,45 @@
+name: pr
+
+# Separate from ci.yml so that "edited" (e.g. a changed base branch) re-runs
+# only this cheap check. Re-running an old run reuses its old payload, so a
+# base change needs a new event. Title/description edits also trigger it,
+# which is harmless. Heavy jobs stay in ci.yml without "edited": skipping them
+# on edits would report skipped (= passing) required checks.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  # Needed only to check out the rule script.
+  contents: read
+
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Enforces the branching model from the workspace CONTRIBUTING.md:
+  # task branches -> develop -> main (no staging).
+  # The rule lives in .github/scripts/branch-flow.sh; its tests run in the ci "test" job.
+  #
+  # Limitation: on `pull_request` the script is checked out from the PR itself,
+  # so a PR can change the rule it is checked against. The check protects from
+  # mistakes, not from malicious intent. When branch protection is enabled,
+  # consider CODEOWNERS on .github/ so rule changes need an owner's review.
+  branch-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Non-cone mode: only this directory, without the repository root files.
+          sparse-checkout: /.github/scripts/
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Check pull request direction
+        env:
+          # Passed via env, never interpolated into the script (injection-safe).
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          # Task key (project.json -> project_key in the workspace).
+          TASK_KEY: 'SD'
+        run: bash .github/scripts/branch-flow.sh
