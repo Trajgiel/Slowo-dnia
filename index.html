@@ -689,7 +689,7 @@ function fillDays(){
   N=DAYS.length;
 }
 function loadState(){
-  kid=store.get(K("kid"),course==="kids"?"girl":"boy");     // от этого зависят фразы от первого лица
+  kid=store.get(K("kid"),"girl");         // от этого зависят фразы от первого лица; по умолчанию девочка / женщина
   fillDays();
   done=new Set(store.get(K("done"),[]).filter(i=>Number.isInteger(i)&&i>=0&&i<N));
   weak=store.get(K("weak"),{});          // слова, которые забылись в опросе: индекс → счёт
