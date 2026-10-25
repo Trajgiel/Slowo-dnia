@@ -2,7 +2,8 @@
 # Check the published GitHub Pages site.
 #
 #   deploy/check-pages.sh hashes [ref]   compare live files with the files in a git ref
-#                                        (default: origin/main); exit 1 on any mismatch
+#                                        (default: origin/main; "origin/*" refs are fetched
+#                                        first); exit 1 on any mismatch or missing file
 #   deploy/check-pages.sh watch [sec]    poll the site every <sec> seconds (default: 5),
 #                                        print a timestamped line whenever the HTTP status
 #                                        changes; stop with Ctrl+C
@@ -16,7 +17,7 @@ SITE_URL="${SITE_URL:-https://trajgiel.github.io/Slowo-dnia/}"
 FILES="${FILES:-index.html sw.js courses/adult.js manifest.webmanifest}"
 
 usage() {
-  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
   exit 2
 }
 
@@ -38,10 +39,20 @@ cmd_hashes() {
     echo "Unknown git ref: $ref" >&2
     exit 2
   }
+  case "$ref" in
+    origin/*)
+      git fetch --quiet origin || echo "Warning: git fetch origin failed, comparing with the local $ref" >&2
+      ;;
+  esac
   local fail=0 f local_hash live_hash
   echo "Site: $SITE_URL"
   echo "Ref:  $ref ($(git rev-parse --short "$ref"))"
   for f in $FILES; do
+    if ! git cat-file -e "$ref:$f" 2>/dev/null; then
+      printf 'MISSING %s (not in %s)\n' "$f" "$ref"
+      fail=1
+      continue
+    fi
     local_hash="$(git show "$ref:$f" | sha256)"
     if ! live_hash="$(curl -fsS -H 'Cache-Control: no-cache' "$(bust "$SITE_URL$f")" | sha256)"; then
       live_hash="(download failed)"
