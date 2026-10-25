@@ -83,8 +83,8 @@ button.ghost{background:transparent;border-color:transparent;color:var(--accent)
 .stat span{font-size:.78rem;color:var(--muted)}
 .bar{height:12px;border-radius:99px;background:var(--soft);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--done);width:0}
-.weekdots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-.weekdots button{min-height:44px;padding:0;border-radius:10px;border:0;background:var(--soft);font-size:.85rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.weekdots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.weekdots button{min-height:44px;padding:0;border-radius:10px;border:0;background:var(--soft);font-size:clamp(.56rem,2.4vw,.85rem);letter-spacing:-.04em;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
 .weekdots button.d{background:var(--done);color:var(--card)}
 .weekdots button.c{outline:2.5px solid var(--margin);outline-offset:1px;color:var(--ink)}
 .weekdots button.c.d{color:var(--card)}
@@ -103,6 +103,13 @@ button.ghost{background:transparent;border-color:transparent;color:var(--accent)
 .dirwrap>*{grid-area:1/1}
 .segnote{display:flex;align-items:center;justify-content:center;min-height:50px;box-sizing:border-box;font-size:.92rem;font-weight:800;color:var(--muted)}
 .quizlead{min-height:3em}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.coursechip{min-height:36px;padding:4px 12px;border-radius:99px;border:0;background:var(--soft);color:var(--accent);font-size:.8rem;font-weight:800;white-space:nowrap}
+.start{gap:14px;padding-top:12px}
+.pick{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:18px;border-radius:18px;width:100%}
+.pick b{font-size:1.35rem;font-weight:900}
+.pick span{color:var(--accent);font-weight:800}
+.pick .msg{color:var(--muted);font-weight:600}
 .okc{color:var(--done)}.badc{color:var(--margin)}
 .rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
 .rstats .stat{background:var(--soft);border-radius:14px;padding:12px 6px}
@@ -185,11 +192,20 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
 </style>
 
 <div class="wrap">
+  <!-- ВЫБОР КУРСА ПРИ ПЕРВОМ ЗАПУСКЕ -->
+  <section class="view start" id="v-start" hidden>
+    <h1>Słowo dnia</h1>
+    <p class="lead">Польский на каждый день. Кто будет учиться?</p>
+    <button class="card pick" id="startKids"><b>👧 Ребёнок</b><span>Детский курс · 500 слов</span><span class="msg">Школа, семья, игры, первые фразы.</span></button>
+    <button class="card pick" id="startAdult"><b>🧑 Взрослый</b><span>Курс для взрослых · 1000 слов</span><span class="msg">Жизнь в Польше: магазин, врач, документы, работа.</span></button>
+    <p class="msg">Курс можно сменить в любой момент в «Настройках». У каждого курса свой прогресс.</p>
+  </section>
+
   <!-- ГЛАВНАЯ -->
   <section class="view" id="v-word">
-    <h1>Słowo dnia</h1>
+    <div class="head"><h1>Słowo dnia</h1><button class="coursechip" id="courseChip" aria-label="Сменить курс в настройках">Детский курс</button></div>
     <div class="card word" aria-live="polite">
-      <div class="meta"><span class="chip" id="dayLabel">День 1</span><span id="weekLabel"></span><span class="badge" id="state"></span></div>
+      <div class="meta"><span class="chip" id="dayLabel">Слово 1</span><span id="weekLabel"></span><span class="badge" id="state"></span></div>
       <p class="pl" id="pl" lang="pl"></p>
       <div class="tr" id="tr"></div>
       <div class="ru" id="ru"></div>
@@ -247,18 +263,31 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
   <section class="view" id="v-help" hidden>
     <h2>Как заниматься</h2>
     <div class="card help">
-      <div><h3>Каждый день</h3>
+      <div data-course="kids"><h3>Каждый день</h3>
       <ul>
         <li>Утром откройте главную вкладку: там уже новое слово.</li>
         <li>Нажмите «Послушать», повторите вместе 3–4 раза.</li>
         <li>Вечером спросите: «Как по-польски…?» Если ребёнок ответил, нажмите «Выучили».</li>
-        <li>Завтра страница сама откроется на следующем слове.</li>
+        <li>Если ребёнок запоминает быстро, переходите к следующему слову стрелкой → — можно учить несколько слов в день.</li>
       </ul></div>
-      <div><h3>Повторение</h3>
+      <div data-course="kids"><h3>Повторение</h3>
       <ul>
         <li>Раз в неделю решайте колоду на вкладке «Опрос»: каждое выученное слово спрашивается один раз, в конце виден результат.</li>
         <li>Если слово забылось, нажмите «Не вспомнили»: в режиме «Без конца» оно будет попадаться чаще.</li>
         <li>Играйте: карточки, «угадай по рисунку», показать предмет дома.</li>
+      </ul></div>
+      <div data-course="adult" hidden><h3>Каждый день</h3>
+      <ul>
+        <li>Откройте вкладку «Слово»: там следующее новое слово.</li>
+        <li>Нажмите «Послушать» и повторите вслух 3–4 раза.</li>
+        <li>Придумайте с ним свою фразу и попробуйте сказать её в течение дня.</li>
+        <li>Запомнили — нажмите «Выучили» и переходите к следующему стрелкой →. Удобный темп — 3–5 слов в день.</li>
+      </ul></div>
+      <div data-course="adult" hidden><h3>Повторение</h3>
+      <ul>
+        <li>Раз в неделю решайте колоду на вкладке «Опрос»: каждое выученное слово спрашивается один раз, в конце виден результат.</li>
+        <li>Режим «Без конца» удобен для коротких повторений — в транспорте или в очереди.</li>
+        <li>Если слово забылось, нажмите «Не вспомнили»: в режиме «Без конца» оно будет попадаться чаще.</li>
       </ul></div>
       <div><h3>Произношение</h3>
       <p class="msg">Транскрипция русскими буквами, ударный слог отмечен. Ударение в польском почти всегда на предпоследний слог.</p>
@@ -274,8 +303,10 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <div><h3>Полезно знать</h3>
       <ul>
         <li id="kidNote"></li>
-        <li>Учительницу называют «proszę pani», учителя «proszę pana».</li>
-        <li>После 52 недель идут 19 запасных недель, всего 500 слов.</li>
+        <li data-course="kids">Учительницу называют «proszę pani», учителя «proszę pana».</li>
+        <li data-course="kids">500 слов в 71 теме. Темы можно проходить в любом порядке через вкладку «План».</li>
+        <li data-course="adult" hidden>К незнакомым людям обращаются на «вы» через «pan» (к мужчине), «pani» (к женщине), «państwo» (к нескольким) и глагол в 3-м лице: «Czy pan wie…?» — «Вы не знаете…?».</li>
+        <li data-course="adult" hidden>1000 слов в 100 темах. Темы можно проходить в любом порядке через вкладку «План».</li>
       </ul></div>
       <div><h3>Если нет польского голоса</h3>
       <ul>
@@ -290,8 +321,16 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
   <section class="view" id="v-settings" hidden>
     <h2>Настройки</h2>
     <div class="card help">
+      <div><h3>Курс</h3>
+      <p class="msg">У каждого курса свой прогресс, серия дней и результаты опроса.</p></div>
+      <div class="seg" role="group" aria-label="Курс">
+        <button id="courseKids" aria-pressed="true">Детский · 500</button>
+        <button id="courseAdult" aria-pressed="false">Для взрослых · 1000</button>
+      </div>
+    </div>
+    <div class="card help">
       <div><h3>Кто учится</h3>
-      <p class="msg">Польские фразы от первого лица («Я устала / устал», «Я ученица / ученик») будут в нужном роде. Прогресс не меняется.</p></div>
+      <p class="msg" id="kidHint"></p></div>
       <div class="seg" role="group" aria-label="Кто учится">
         <button id="kidGirl" aria-pressed="true">Девочка</button>
         <button id="kidBoy" aria-pressed="false">Мальчик</button>
@@ -325,7 +364,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
     </div>
     <div class="card help">
       <div><h3>Резервная копия прогресса</h3>
-      <p class="msg">Прогресс хранится только на этом устройстве. Сохраните код (например, в Заметки или отправьте себе), чтобы восстановить отметки на новом телефоне, в установленном приложении или после очистки браузера.</p></div>
+      <p class="msg">Прогресс хранится только на этом устройстве. Сохраните код (например, в Заметки или отправьте себе), чтобы восстановить отметки на новом телефоне, в установленном приложении или после очистки браузера. Код сохраняет прогресс обоих курсов.</p></div>
       <div class="row2">
         <button id="bkCopy">Скопировать код</button>
         <button id="bkShare">Отправить…</button>
@@ -336,7 +375,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
     </div>
     <div class="card help">
       <div><h3>Начать заново</h3>
-      <p class="msg">Удалит все отметки «Выучили» и слова для повторения на этом устройстве. Сначала сохраните код выше, если прогресс может понадобиться.</p></div>
+      <p class="msg">Удалит отметки «Выучили», слова для повторения, серию дней и результаты опроса текущего курса. Другой курс не затрагивается. Сначала сохраните код выше, если прогресс может понадобиться.</p></div>
       <button id="reset" class="danger full">Сбросить прогресс</button>
     </div>
     <div class="card help">
@@ -628,32 +667,50 @@ const BOY={
 "Brawo, córeczko!":["Brawo, synku!","Молодец, сынок!","бра́во, сы́нку"],
 "Mamo, wróciłam!":["Mamo, wróciłem!","Мама, я вернулся!","ма́мо, вручи́уэм"]};
 const BOY_THEME={"Я готова!":"Я готов!"};
-const DAYS=[];
-function fillDays(boy){
-  DAYS.length=0;
-  W.forEach(([t,items],wi)=>items.forEach(it=>{const m=boy&&BOY[it[0]]||it;DAYS.push({pl:m[0],ru:m[1],tr:m[2],week:wi+1,theme:boy&&BOY_THEME[t]||t})}));
-}
-fillDays(false);
-const N=DAYS.length;
+/* ---------- курсы ----------
+   Детский — W выше (базовая форма для девочки, BOY — для мальчика).
+   Для взрослых — courses/adult.js, загружается только когда курс выбран (базовая форма мужская, 4-й элемент записи — женская). */
+const COURSES={
+  kids:{name:"Детский курс",prefix:"",g:["Девочка","Мальчик"]},
+  adult:{name:"Курс для взрослых",prefix:"adult:",g:["Женщина","Мужчина"],src:"courses/adult.js"}};
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const wkName=w=>w<=52?`Неделя ${w}`:`Запас ${w-52}`;
-
-let kid=store.get("kid","girl");         // девочка или мальчик — от этого зависят фразы от первого лица
-fillDays(kid==="boy");
-let done=new Set(store.get("done",[]));
-let weak=store.get("weak",{});          // слова, которые забылись в опросе: индекс → счёт
-let days=store.get("days",[]);          // даты (ГГГГ-ММ-ДД), когда отмечали слово, — для серии дней
+let course="kids",CW=W,N=0,kid,done,weak,days,cur=0;
+const DAYS=[];
+const K=k=>COURSES[course].prefix+k;     // у каждого курса свои ключи в хранилище
+function fillDays(){
+  const girl=kid==="girl";DAYS.length=0;
+  CW.forEach(([t,items],ti)=>items.forEach(it=>{
+    const m=course==="kids"?(!girl&&BOY[it[0]]||it):(girl&&it[3]||it);
+    DAYS.push({pl:m[0],ru:m[1],tr:m[2],ti,theme:course==="kids"&&!girl&&BOY_THEME[t]||t});
+  }));
+  N=DAYS.length;
+}
+function loadState(){
+  kid=store.get(K("kid"),course==="kids"?"girl":"boy");     // от этого зависят фразы от первого лица
+  fillDays();
+  done=new Set(store.get(K("done"),[]).filter(i=>Number.isInteger(i)&&i>=0&&i<N));
+  weak=store.get(K("weak"),{});          // слова, которые забылись в опросе: индекс → счёт
+  days=store.get(K("days"),[]);          // даты (ГГГГ-ММ-ДД), когда отмечали слово, — для серии дней
+  cur=nextIdx();
+}
+function loadCourseData(c){
+  if(c==="kids")return Promise.resolve(W);
+  if(window.COURSE_ADULT)return Promise.resolve(window.COURSE_ADULT);
+  return new Promise((ok,fail)=>{const el=document.createElement("script");el.src=COURSES[c].src;
+    el.onload=()=>window.COURSE_ADULT?ok(window.COURSE_ADULT):fail();el.onerror=fail;document.head.appendChild(el)});
+}
 
 function nextIdx(){for(let i=0;i<N;i++)if(!done.has(i))return i;return N-1}  // первое невыученное с начала
-let cur=nextIdx();
+loadState();
 
 /* ---------- вкладки ---------- */
 const VIEWS=["word","quiz","plan","help","settings"];
 function tab(v){
   if(!VIEWS.includes(v))v="word";
+  startScreen(false);
   VIEWS.forEach(x=>{$("v-"+x).hidden=x!==v});
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
   if(v==="quiz")renderQuiz();
@@ -674,24 +731,53 @@ setTheme(document.documentElement.dataset.theme);
 $("themeDark").onclick=()=>{store.set("theme","dark");setTheme("dark")};
 $("themeLight").onclick=()=>{store.set("theme","light");setTheme("light")};
 
-/* ---------- девочка / мальчик ---------- */
+/* ---------- кто учится: девочка / мальчик (женщина / мужчина во взрослом курсе) ---------- */
 function setKid(k,rerender){
-  kid=k;fillDays(k==="boy");
+  kid=k;fillDays();
+  const g=COURSES[course].g;$("kidGirl").textContent=g[0];$("kidBoy").textContent=g[1];
   $("kidGirl").setAttribute("aria-pressed",k==="girl");$("kidBoy").setAttribute("aria-pressed",k==="boy");
-  $("kidNote").textContent=k==="boy"
-    ?"Фразы от первого лица даны для мальчика: «Skończyłem», «Zgubiłem się». Переключить можно в «Настройках»."
-    :"Фразы от первого лица даны для девочки: «Skończyłam», «Zgubiłam się». Переключить можно в «Настройках».";
+  const kids=course==="kids";
+  $("kidHint").textContent=kids
+    ?"Польские фразы от первого лица («Я устала / устал», «Я ученица / ученик») будут в нужном роде. Прогресс не меняется."
+    :"Польские фразы от первого лица («Jestem zmęczona / zmęczony», «Zrobiłam / Zrobiłem») будут в нужном роде. Прогресс не меняется.";
+  $("kidNote").textContent=kids
+    ?(k==="boy"?"Фразы от первого лица даны для мальчика: «Skończyłem», «Zgubiłem się».":"Фразы от первого лица даны для девочки: «Skończyłam», «Zgubiłam się».")+" Переключить можно в «Настройках»."
+    :(k==="boy"?"Фразы от первого лица даны в мужском роде: «Zrobiłem», «Jestem gotowy».":"Фразы от первого лица даны в женском роде: «Zrobiłam», «Jestem gotowa».")+" Переключить можно в «Настройках».";
   if(rerender){const open=[...document.querySelectorAll("#weeks details")].map(d=>d.open);
     build();document.querySelectorAll("#weeks details").forEach((d,i)=>d.open=open[i]);show(cur);progress();renderQuiz()}
 }
-$("kidGirl").onclick=()=>{store.set("kid","girl");setKid("girl",true)};
-$("kidBoy").onclick=()=>{store.set("kid","boy");setKid("boy",true)};
+$("kidGirl").onclick=()=>{store.set(K("kid"),"girl");setKid("girl",true)};
+$("kidBoy").onclick=()=>{store.set(K("kid"),"boy");setKid("boy",true)};
+
+/* ---------- выбор курса ---------- */
+async function setCourse(c){
+  let data;
+  try{data=await loadCourseData(c)}catch(e){toast("Не удалось загрузить курс. Проверьте интернет и попробуйте ещё раз.");return false}
+  course=c;CW=data;store.set("course",c);loadState();
+  quiz.free={idx:null,dir:"ru",recent:[]};quiz.shown=false;
+  renderCourse();return true;
+}
+function renderCourse(){
+  $("courseChip").textContent=COURSES[course].name;
+  $("courseKids").setAttribute("aria-pressed",course==="kids");$("courseAdult").setAttribute("aria-pressed",course==="adult");
+  document.querySelectorAll("[data-course]").forEach(el=>el.hidden=el.dataset.course!==course);
+  setKid(kid,false);build();show(cur);progress();openCurWeek();renderQuiz();
+}
+function startScreen(on){
+  $("v-start").hidden=!on;document.querySelector("nav.tabs").hidden=on;
+  if(on)VIEWS.forEach(x=>{$("v-"+x).hidden=true});
+}
+$("courseKids").onclick=()=>{if(course!=="kids")setCourse("kids")};
+$("courseAdult").onclick=()=>{if(course!=="adult")setCourse("adult")};
+$("courseChip").onclick=()=>tab("settings");
+$("startKids").onclick=async()=>{if(await setCourse("kids"))tab("word")};
+$("startAdult").onclick=async()=>{if(await setCourse("adult"))tab("word")};
 
 /* ---------- главная ---------- */
 function show(i){
   cur=Math.min(N-1,Math.max(0,i));const d=DAYS[cur];
-  $("dayLabel").textContent=`День ${cur+1} из ${N}`;
-  $("weekLabel").textContent=`${wkName(d.week)} · ${d.theme}`;
+  $("dayLabel").textContent=`Слово ${cur+1} из ${N}`;
+  $("weekLabel").textContent=`Тема ${d.ti+1} · ${d.theme}`;
   const st=$("state");
   if(done.has(cur)){st.textContent="выучено";st.className="badge ok"}
   else if(cur===nextIdx()){st.textContent="новое";st.className="badge"}
@@ -705,9 +791,9 @@ function show(i){
   weekDots();
 }
 function weekDots(){
-  const w=DAYS[cur].week,idx=[];DAYS.forEach((d,i)=>{if(d.week===w)idx.push(i)});
-  $("weekTitle").textContent=`${wkName(w)}: ${DAYS[cur].theme}`;
-  $("weekDots").style.gridTemplateColumns=`repeat(${idx.length},minmax(0,1fr))`;$("weekDots").innerHTML=idx.map(i=>`<button data-i="${i}" class="${done.has(i)?"d":""} ${i===cur?"c":""}" aria-label="День ${i+1}: ${esc(DAYS[i].pl)}"${i===cur?' aria-current="true"':""}>${i+1}</button>`).join("");
+  const t=DAYS[cur].ti,idx=[];DAYS.forEach((d,i)=>{if(d.ti===t)idx.push(i)});
+  $("weekTitle").textContent=`Тема ${t+1}: ${DAYS[cur].theme}`;
+  $("weekDots").style.gridTemplateColumns=`repeat(${idx.length},minmax(0,1fr))`;$("weekDots").innerHTML=idx.map(i=>`<button data-i="${i}" class="${done.has(i)?"d":""} ${i===cur?"c":""}" aria-label="Слово ${i+1}: ${esc(DAYS[i].pl)}"${i===cur?' aria-current="true"':""}>${i+1}</button>`).join("");
 }
 function progress(){
   $("sDone").textContent=done.size;$("sLeft").textContent=N-done.size;
@@ -719,7 +805,7 @@ function progress(){
     el.textContent=`${c}/${rows.length}`;el.classList.toggle("full",c===rows.length)});
   weekDots();
 }
-function save(){store.set("done",[...done].sort((a,b)=>a-b));store.set("weak",weak);store.set("days",days)}
+function save(){store.set(K("done"),[...done].sort((a,b)=>a-b));store.set(K("weak"),weak);store.set(K("days"),days)}
 $("prev").onclick=()=>show(cur-1);
 $("next").onclick=()=>show(cur+1);
 $("toNew").onclick=()=>show(nextIdx());
@@ -746,13 +832,13 @@ function renderStreak(){
   else el.textContent=`🔥 ${n} ${pluralDays(n)} подряд`+(today?"":" — отметьте слово сегодня, чтобы не прервать серию");
 }
 
-/* похвала: выучена вся неделя или все слова */
+/* похвала: выучена вся тема или все слова */
 let toastTimer;
 function toast(text){const t=$("toast");t.textContent=text;t.classList.add("on");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("on"),3500)}
 function praise(i){
-  if(done.size===N){toast("🏆 Все 500 слов выучены! Gratulacje!");return}
-  const w=DAYS[i].week,week=DAYS.map((d,k)=>k).filter(k=>DAYS[k].week===w);
-  if(week.every(k=>done.has(k)))toast(`🎉 ${wkName(w)} «${DAYS[i].theme}» выучена! Brawo!`);
+  if(done.size===N){toast(`🏆 Все ${N} слов выучены! Gratulacje!`);return}
+  const t=DAYS[i].ti;
+  if(DAYS.every((d,k)=>d.ti!==t||done.has(k)))toast(`🎉 Тема «${DAYS[i].theme}» выучена! Brawo!`);
 }
 
 /* озвучка */
@@ -775,8 +861,8 @@ const quiz={mode:store.get("qmode","deck"),dir:store.get("qdir","ru"),shown:fals
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const newDeck=()=>({order:shuffle([...done]),ans:{}});
 function getDeck(dir){
-  let dk=store.get("deck_"+dir,null);
-  if(!dk||!Array.isArray(dk.order)||!dk.ans||typeof dk.ans!=="object"){dk=newDeck();store.set("deck_"+dir,dk)}
+  let dk=store.get(K("deck_"+dir),null);
+  if(!dk||!Array.isArray(dk.order)||!dk.ans||typeof dk.ans!=="object"){dk=newDeck();store.set(K("deck_"+dir),dk)}
   return dk;
 }
 function deckState(dk){
@@ -842,12 +928,12 @@ function renderQuiz(){
 }
 function renderDeck(box){
   const dir=quiz.dir;let dk=getDeck(dir),st=deckState(dk);
-  if(!st.total){dk=newDeck();store.set("deck_"+dir,dk);st=deckState(dk)}
+  if(!st.total){dk=newDeck();store.set(K("deck_"+dir),dk);st=deckState(dk)}
   else if(st.next!==undefined){              // новые выученные слова добавляются в конец незаконченной колоды
     const extra=shuffle([...done].filter(i=>!dk.order.includes(i)));
-    if(extra.length){dk.order.push(...extra);store.set("deck_"+dir,dk);st=deckState(dk)}
+    if(extra.length){dk.order.push(...extra);store.set(K("deck_"+dir),dk);st=deckState(dk)}
   }
-  const last=store.get("last_"+dir,null),prev=store.get("prev_"+dir,null);
+  const last=store.get(K("last_"+dir),null),prev=store.get(K("prev_"+dir),null);
   if(st.next===undefined){                    // колода решена
     const pct=Math.round(st.right/st.total*100);
     box.innerHTML=`<div class="card quiz result">
@@ -865,7 +951,7 @@ function renderDeck(box){
         <div class="score">${done.size>st.total?`В новой колоде будет ${done.size} ${plural(done.size)}`:"&nbsp;"}</div></div>
     </div>`;
     $("quizBelow").innerHTML=prev?`<div class="msg">Прошлый результат: ${resText(prev)}</div>`:"";
-    $("qAgain").onclick=()=>{store.set("deck_"+dir,newDeck());quiz.shown=false;renderQuiz()};
+    $("qAgain").onclick=()=>{store.set(K("deck_"+dir),newDeck());quiz.shown=false;renderQuiz()};
     return;
   }
   box.innerHTML=questionCard(st.next,dir,`Карточка ${st.right+st.wrong+1} из ${st.total}`,
@@ -873,14 +959,14 @@ function renderDeck(box){
   $("quizBelow").innerHTML=(last?`<div class="msg">Прошлый результат: ${resText(last)}</div>`:"")
     +(st.right+st.wrong?`<button id="qRestart" class="ghost">Начать колоду заново</button>`:"");
   const answer=ok=>{
-    dk.ans[st.next]=ok;markWeak(st.next,ok);store.set("deck_"+dir,dk);quiz.shown=false;
+    dk.ans[st.next]=ok;markWeak(st.next,ok);store.set(K("deck_"+dir),dk);quiz.shown=false;
     const s2=deckState(dk);
-    if(s2.next===undefined){if(last)store.set("prev_"+dir,last);store.set("last_"+dir,{right:s2.right,wrong:s2.wrong,total:s2.total,date:dayKey(new Date())})}
+    if(s2.next===undefined){if(last)store.set(K("prev_"+dir),last);store.set(K("last_"+dir),{right:s2.right,wrong:s2.wrong,total:s2.total,date:dayKey(new Date())})}
     renderQuiz();
   };
   if($("qYes"))$("qYes").onclick=()=>answer(true);
   if($("qNo"))$("qNo").onclick=()=>answer(false);
-  if($("qRestart"))twoStep($("qRestart"),"Начать колоду заново","Счёт обнулится. Нажмите ещё раз",()=>{store.set("deck_"+dir,newDeck());quiz.shown=false;renderQuiz()});
+  if($("qRestart"))twoStep($("qRestart"),"Начать колоду заново","Счёт обнулится. Нажмите ещё раз",()=>{store.set(K("deck_"+dir),newDeck());quiz.shown=false;renderQuiz()});
 }
 function renderFree(box){
   const f=quiz.free;
@@ -900,9 +986,8 @@ $("dirPl").onclick=()=>{quiz.dir="pl";store.set("qdir","pl");quiz.shown=false;re
 /* ---------- план ---------- */
 function build(){
   let k=0,html="";
-  W.forEach(([,items],wi)=>{
-    if(wi===52)html+=`<div class="sep">Запасные недели</div>`;
-    html+=`<details><summary><span class="wk">${wkName(wi+1)}</span><span class="th">${esc(DAYS[k].theme)}</span><span class="cnt"></span></summary><ol>`;
+  CW.forEach(([,items],wi)=>{
+    html+=`<details><summary><span class="wk">Тема ${wi+1}</span><span class="th">${esc(DAYS[k].theme)}</span><span class="cnt"></span></summary><ol>`;
     items.forEach(()=>{const d=DAYS[k];html+=`<li><button class="item" data-i="${k}"><span class="n">${k+1}</span><span class="w"><b lang="pl">${esc(d.pl)}</b><span>${esc(d.ru)}</span></span><span class="ck"></span></button></li>`;k++});
     html+="</ol></details>";
   });
@@ -911,34 +996,46 @@ function build(){
 }
 function openCurWeek(){document.querySelectorAll("#weeks details").forEach(det=>{if(det.querySelector(`button.item[data-i="${cur}"]`))det.open=true})}
 
-setKid(kid,false);build();show(cur);progress();openCurWeek();
-tab(/^#(word|quiz|plan|help|settings)$/.test(location.hash)?location.hash.slice(1):"word");
+/* ---------- запуск ---------- */
+(async()=>{
+  let c=store.get("course",null);
+  // у тех, кто пользовался приложением до появления курсов, остаётся детский курс
+  if(!c&&["done","days","kid","theme","tab","qmode"].some(k=>localStorage.getItem(k)!==null))c="kids";
+  if(!c){renderCourse();startScreen(true);return}
+  if(c==="adult"&&await setCourse("adult")){}
+  else{store.set("course","kids");renderCourse()}
+  tab(/^#(word|quiz|plan|help|settings)$/.test(location.hash)?location.hash.slice(1):"word");
+})();
 
-/* ---------- резервная копия и сброс ---------- */
-// код: SD1.<выученные слова битами, base64url>.<забытые слова i:счёт,…>.<дни серии ГГГГММДД,…>
+/* ---------- резервная копия и сброс ----------
+   Код SD2: base64url(JSON) с прогрессом обоих курсов. Старый код SD1 (только детский курс) тоже принимается. */
 const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=str=>Uint8Array.from(atob(str.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
-function exportCode(){
-  const bits=new Uint8Array(Math.ceil(N/8));done.forEach(i=>bits[i>>3]|=1<<(i&7));
-  const w=Object.entries(weak).filter(([,c])=>c>0).map(([i,c])=>`${i}:${c}`).join(",");
-  const d=days.slice(-60).map(x=>x.replace(/-/g,"")).join(",");
-  return`SD1.${b64(bits)}.${w}.${d}`;
-}
+const toBits=arr=>{const bits=new Uint8Array(Math.ceil((Math.max(-1,...arr)+1)/8));arr.forEach(i=>bits[i>>3]|=1<<(i&7));return b64(bits)};
+const fromBits=str=>{const b=unb64(str),r=[];for(let i=0;i<b.length*8;i++)if(b[i>>3]&(1<<(i&7)))r.push(i);return r};
+const cleanWeak=w=>{const r={};if(w&&typeof w==="object")Object.entries(w).forEach(([i,c])=>{i=+i;c=+c;if(Number.isInteger(i)&&i>=0&&c>0)r[i]=Math.min(c,99)});return r};
+const packDays=d=>d.slice(-60).map(x=>x.replace(/-/g,"")).join(",");
+const unpackDays=str=>str?str.split(",").filter(x=>/^\d{8}$/.test(x)).map(x=>`${x.slice(0,4)}-${x.slice(4,6)}-${x.slice(6)}`):[];
+function packCourse(c){const p=COURSES[c].prefix;return{d:toBits(store.get(p+"done",[])),w:store.get(p+"weak",{}),s:packDays(store.get(p+"days",[]))}}
+function exportCode(){save();return"SD2."+b64(new TextEncoder().encode(JSON.stringify({v:2,k:packCourse("kids"),a:packCourse("adult")})))}
 function importCode(code){
-  const p=code.replace(/\s+/g,"").split(".");
+  const c=code.replace(/\s+/g,"");
+  if(c.startsWith("SD2.")){
+    const j=JSON.parse(new TextDecoder().decode(unb64(c.slice(4))));if(j.v!==2)throw 0;
+    const un=x=>x&&typeof x==="object"?{done:fromBits(x.d||""),weak:cleanWeak(x.w),days:unpackDays(x.s)}:null;
+    return{kids:un(j.k),adult:un(j.a)};
+  }
+  const p=c.split(".");
   if(p[0]!=="SD1"||p.length!==4)throw 0;
-  const bits=unb64(p[1]),nd=new Set();
-  for(let i=0;i<N;i++)if(bits[i>>3]&(1<<(i&7)))nd.add(i);
-  const nw={};if(p[2])p[2].split(",").forEach(x=>{const[i,c]=x.split(":").map(Number);if(Number.isInteger(i)&&i>=0&&i<N&&c>0)nw[i]=Math.min(c,99)});
-  const ndays=p[3]?p[3].split(",").filter(x=>/^\d{8}$/.test(x)).map(x=>`${x.slice(0,4)}-${x.slice(4,6)}-${x.slice(6)}`):[];
-  return{done:nd,weak:nw,days:ndays};
+  const w={};if(p[2])p[2].split(",").forEach(x=>{const[i,n]=x.split(":");w[i]=n});
+  return{kids:{done:fromBits(p[1]),weak:cleanWeak(w),days:unpackDays(p[3])},adult:null};
 }
-function applyProgress(x){
-  done=x.done;weak=x.weak;days=x.days;save();
-  ["ru","pl"].forEach(d=>["deck_","last_","prev_"].forEach(k=>store.set(k+d,null)));
-  quiz.free={idx:null,dir:"ru",recent:[]};quiz.shown=false;
-  show(nextIdx());progress();openCurWeek();renderQuiz();
+function writeCourse(c,x){
+  const p=COURSES[c].prefix;
+  store.set(p+"done",[...new Set(x.done)].sort((a,b)=>a-b));store.set(p+"weak",x.weak);store.set(p+"days",x.days);
+  ["ru","pl"].forEach(d=>["deck_","last_","prev_"].forEach(k=>store.set(p+k+d,null)));
 }
+function reloadCourse(){loadState();quiz.free={idx:null,dir:"ru",recent:[]};quiz.shown=false;renderCourse()}
 // опасные кнопки срабатывают со второго нажатия
 function twoStep(btn,label,armedLabel,action){
   let t;btn.onclick=()=>{
@@ -956,11 +1053,13 @@ $("bkCopy").onclick=async()=>{
 if(navigator.share)$("bkShare").onclick=()=>navigator.share({title:"Słowo dnia — прогресс",text:exportCode()}).catch(()=>{});
 else{$("bkShare").hidden=true;$("bkCopy").parentElement.style.gridTemplateColumns="1fr"}
 twoStep($("bkRestore"),"Восстановить из кода","Заменить текущий прогресс? Нажмите ещё раз",()=>{
-  let x;try{x=importCode($("bkCode").value)}catch(e){bkMsg("Не получилось прочитать код. Вставьте его целиком, начиная с «SD1.».");return}
-  applyProgress(x);bkMsg(`Прогресс восстановлен: выучено ${x.done.size} ${plural(x.done.size)}.`);
+  let x;try{x=importCode($("bkCode").value)}catch(e){bkMsg("Не получилось прочитать код. Вставьте его целиком, начиная с «SD».");return}
+  const parts=[];
+  ["kids","adult"].forEach(c=>{if(x[c]){writeCourse(c,x[c]);parts.push(`${COURSES[c].name.toLowerCase()} — ${x[c].done.length} ${plural(x[c].done.length)}`)}});
+  reloadCourse();bkMsg(`Прогресс восстановлен: ${parts.join(", ")}.`);
 });
 twoStep($("reset"),"Сбросить прогресс","Точно удалить все отметки? Нажмите ещё раз",()=>{
-  applyProgress({done:new Set(),weak:{},days:[]});bkMsg("");toast("Прогресс сброшен. Начинаем с первого слова!");
+  writeCourse(course,{done:[],weak:{},days:[]});reloadCourse();bkMsg("");toast("Прогресс курса сброшен. Начинаем с первого слова!");
 });
 
 /* PWA: офлайн-работа и установка на телефон */

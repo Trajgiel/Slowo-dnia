@@ -1,12 +1,13 @@
 /* Service worker: приложение работает без интернета.
    Страница — сначала из сети (чтобы обновления приходили сразу), при офлайне — из кэша.
    Иконки и шрифты (свои, из fonts/) — сначала из кэша. При изменении файлов поднимайте версию VERSION. */
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = `slowo-dnia-${VERSION}`;
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./courses/adult.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",
