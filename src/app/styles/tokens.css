@@ -1,0 +1,141 @@
+/* Design tokens: design/system/README.md in the workspace (values of the prototype, unchanged).
+   A token name is the CSS variable name. Component styles use only these variables for colors,
+   fonts, font sizes, spacing, radii, borders, shadows and durations. */
+
+/* Light values are the default; the dark theme overrides them. data-theme is always set on
+   <html> before the first paint (index.html), dark by default. */
+:root {
+  --paper: #f6f8fc;
+  --grid: #e1e8f4;
+  --ink: #1c2840;
+  --muted: #5d6a82;
+  --margin: #d8473c;
+  --accent: #2c66cf;
+  --card: #ffffff;
+  --done: #2f8f5b;
+  --line: #d3dcec;
+  --soft: #eef3fb;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --paper: #121826;
+  --grid: #1b2439;
+  --ink: #e7edf8;
+  --muted: #9aa6be;
+  --margin: #ef6b60;
+  --accent: #86aeff;
+  --card: #1a2235;
+  --done: #5fc58c;
+  --line: #2b3754;
+  --soft: #222c44;
+  color-scheme: dark;
+}
+
+:root {
+  /* Font families */
+  --f-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-hand: 'Caveat', 'Comic Sans MS', cursive;
+  --f-mono: ui-monospace, Menlo, monospace;
+
+  /* Font sizes (rem of the browser's 16px) */
+  --fs-body: 17px;
+  --fs-h1: 2.2rem;
+  --fs-h2: 1.9rem;
+  --fs-word: clamp(2rem, 9vw, 2.8rem);
+  --fs-q: clamp(1.8rem, 8vw, 2.5rem);
+  --fs-q-long: clamp(1.4rem, 6vw, 1.9rem);
+  --fs-result: 2rem;
+  --fs-tr: 1.75rem;
+  --fs-answer: 1.6rem;
+  --fs-sep: 1.6rem;
+  --fs-stat: 1.5rem;
+  --fs-pick: 1.35rem;
+  --fs-answer-long: 1.3rem;
+  --fs-ru: 1.2rem;
+  --fs-sound: 1.15rem;
+  --fs-empty: 1.1rem;
+  --fs-h3: 1.05rem;
+  --fs-seg: 0.92rem;
+  --fs-ask: 0.9rem;
+  --fs-small: 0.85rem;
+  --fs-xs: 0.8rem;
+  --fs-stat-label: 0.78rem;
+  --fs-badge: 0.75rem;
+  --fs-chip: 0.72rem;
+  --fs-dot: clamp(0.56rem, 2.4vw, 0.85rem);
+
+  /* Line heights */
+  --lh-tight: 1;
+  --lh-title: 1.1;
+  --lh-word: 1.12;
+  --lh-q: 1.15;
+  --lh-code: 1.4;
+  --lh-body: 1.5;
+
+  /* Letter spacing */
+  --ls-caps: 0.06em;
+  --ls-dot: -0.04em;
+
+  /* Spacing */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-24: 24px;
+
+  /* Hit target heights */
+  --hit-36: 36px;
+  --hit-42: 42px;
+  --hit-44: 44px;
+  --hit-48: 48px;
+  --hit-50: 50px;
+  --hit-52: 52px;
+
+  /* Radii */
+  --radius-card: 18px;
+  --radius-toast: 16px;
+  --radius-control: 14px;
+  --radius-seg: 11px;
+  --radius-sm: 10px;
+  --radius-pill: 99px;
+
+  /* Borders and outlines. A var() inside a custom property resolves on :root,
+     where the theme colors live, so these follow the theme. */
+  --border: 1px solid var(--line);
+  --border-control: 1.5px solid var(--line);
+  --border-dashed: 2px dashed var(--line);
+  --focus-ring: 3px solid var(--accent);
+  --focus-ring-offset: 2px;
+  --current-ring: 2.5px solid var(--margin);
+  --current-ring-offset: 1px;
+  --marker: inset 3px 0 0 var(--margin);
+  --margin-line-width: 2px;
+  --margin-line-opacity: 0.75;
+  --margin-line-left: 20px;
+
+  /* Shadows (same in both themes) */
+  --shadow-card: 0 8px 26px -18px rgba(20, 40, 80, 0.45);
+  --shadow-seg: 0 1px 4px rgba(0, 0, 0, 0.18);
+  --shadow-toast: 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+
+  /* Motion */
+  --dur-toast: 0.25s;
+  --toast-shift: 10px;
+  --dur-bar: 0.4s;
+  --press-scale: 0.98;
+
+  /* Layout */
+  --col-max: 640px;
+  --grid-step: 22px;
+  --tabh: 64px;
+  --z-tabs: 20;
+  --z-toast: 25;
+  --z-statusbar: 30;
+}

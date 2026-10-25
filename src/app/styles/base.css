@@ -1,0 +1,78 @@
+/* Page base: safe areas, squared-paper background, one column, the strip under the iPhone
+   clock (design/system/README.md in the workspace, "Layout and safe area", "Squared paper"). */
+
+/* Safe areas on <html>: the top padding moves content below the notch in standalone mode. */
+html {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: var(--grid-step) var(--grid-step);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Strip under the iPhone status bar (black-translucent): white clock stays visible in both themes. */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  z-index: var(--z-statusbar);
+  background: var(--paper);
+}
+
+:root[data-theme='light'] body::before {
+  background: var(--ink);
+}
+
+/* One column up to --col-max; the bottom padding keeps content above the tab bar. */
+#root {
+  max-width: var(--col-max);
+  margin: 0 auto;
+  padding-block: var(--space-18)
+    calc(var(--tabh) + env(safe-area-inset-bottom, 0px) + var(--space-24));
+  padding-left: max(var(--space-16), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--space-16), env(safe-area-inset-right, 0px));
+}
+
+h1 {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--f-hand);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+}
+
+h2 {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--f-hand);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-title);
+  text-wrap: balance;
+}
+
+img {
+  max-width: 100%;
+}
+
+[hidden]:not([hidden='until-found' i]) {
+  display: none !important;
+}

@@ -2,7 +2,34 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
+    <!-- Słowo dnia. © 2026 Wlodzimierz Trajgiel. Все права защищены. См. LICENSE. -->
+    <meta name="author" content="Wlodzimierz Trajgiel" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Base path from Vite: the manifest file arrives with the offline task (SD-18); until then Vite
+         cannot rewrite a missing public file, so the base path is put in explicitly. -->
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Słowo dnia" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#121826" />
+    <!-- Theme before the first paint, so the page never flashes the other theme.
+         Same rule as the prototype: the stored "theme" is JSON; anything but "light" is dark.
+         Colors equal --paper of each theme; later changes go through src/platform/theme.ts. -->
+    <script>
+      ;(function () {
+        var t
+        try {
+          t = JSON.parse(localStorage.getItem('theme'))
+        } catch (e) {}
+        t = t === 'light' ? 'light' : 'dark'
+        document.documentElement.dataset.theme = t
+        var meta = document.querySelector('meta[name="theme-color"]')
+        if (meta) meta.content = t === 'light' ? '#f6f8fc' : '#121826'
+      })()
+    </script>
     <title>Польский на каждый день</title>
   </head>
   <body>
