@@ -99,6 +99,10 @@ button.ghost{background:transparent;border-color:transparent;color:var(--accent)
 .qbot>button,.qbtns button{min-height:52px}
 .q.long{font-size:clamp(1.4rem,6vw,1.9rem)}
 .ans .a.long{font-size:1.3rem}
+.dirwrap{display:grid}
+.dirwrap>*{grid-area:1/1}
+.segnote{display:flex;align-items:center;justify-content:center;min-height:50px;box-sizing:border-box;font-size:.92rem;font-weight:800;color:var(--muted)}
+.quizlead{min-height:3em}
 .okc{color:var(--done)}.badc{color:var(--margin)}
 .rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
 .rstats .stat{background:var(--soft);border-radius:14px;padding:12px 6px}
@@ -219,11 +223,14 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <button id="modeDeck" aria-pressed="true">Колода</button>
       <button id="modeFree" aria-pressed="false">Без конца</button>
     </div>
+    <div class="dirwrap">
     <div class="seg" id="dirSeg" role="group" aria-label="Направление">
       <button id="dirRu" aria-pressed="true">Русский → польский</button>
       <button id="dirPl" aria-pressed="false">Польский → русский</button>
     </div>
-    <p class="lead" id="quizLead"></p>
+    <div class="seg segnote" id="dirMix">Русский ⇄ польский вперемешку</div>
+    </div>
+    <p class="lead quizlead" id="quizLead"></p>
     <div id="quizBox"></div>
     <div class="quizbelow" id="quizBelow"></div>
     <div class="msg" id="qmsg" hidden></div>
@@ -819,11 +826,12 @@ function questionCard(i,dir,top,bottom){
 function renderQuiz(){
   const box=$("quizBox"),deck=quiz.mode==="deck";
   $("modeDeck").setAttribute("aria-pressed",deck);$("modeFree").setAttribute("aria-pressed",!deck);
-  $("dirSeg").hidden=!deck;
+  // переключатель направления и плашка «вперемешку» лежат в одной ячейке, поэтому высота не меняется
+  $("dirSeg").classList.toggle("inv",!deck);$("dirSeg").inert=!deck;$("dirMix").classList.toggle("inv",deck);
   ["ru","pl"].forEach(d=>$(d==="ru"?"dirRu":"dirPl").setAttribute("aria-pressed",quiz.dir===d));
   $("quizLead").textContent=deck
-    ?"Каждое выученное слово — один раз. Спросите ребёнка, дайте ответить, откройте ответ и отметьте результат."
-    :"Выученные слова в случайном порядке, по-русски и по-польски, без счёта. Повторяйте сколько угодно.";
+    ?"Каждое выученное слово — один раз. В конце будет результат."
+    :"Выученные слова в случайном порядке, без счёта и без конца.";
   $("qmsg").hidden=true;
   if(!done.size){
     box.innerHTML=`<div class="card empty"><b>Пока нечего спрашивать</b><span>Отметьте хотя бы одно слово как «Выучили» на вкладке «Слово», и оно появится здесь.</span></div>`;
