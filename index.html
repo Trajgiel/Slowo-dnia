@@ -6,8 +6,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Słowo dnia">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f6f8fc" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121826" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#121826" id="themeColor">
+<script>/* тема до отрисовки, чтобы не мигало: по умолчанию тёмная */
+(()=>{let t;try{t=JSON.parse(localStorage.getItem("theme"))}catch(e){}
+  t=t==="light"?"light":"dark";document.documentElement.dataset.theme=t;
+  document.getElementById("themeColor").content=t==="light"?"#f6f8fc":"#121826"})();</script>
 </head><body>
 <title>Польский на каждый день</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -127,7 +130,7 @@ button.item.cur{background:var(--soft);box-shadow:inset 3px 0 0 var(--margin)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom,0px);
   padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
-nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav.tabs button{border:0;border-radius:0;background:transparent;min-height:var(--tabh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   font-size:.72rem;font-weight:800;color:var(--muted);padding:6px 2px}
 nav.tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -220,6 +223,20 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
         <li>После 52 недель идут 19 запасных недель, всего 500 слов.</li>
         <li>Если польского голоса на телефоне нет: Настройки → Универсальный доступ → Устный контент → Голоса → Польский.</li>
       </ul></div>
+    </div>
+  </section>
+
+  <!-- НАСТРОЙКИ -->
+  <section class="view" id="v-settings" hidden>
+    <h2>Настройки</h2>
+    <div class="card help">
+      <div><h3>Тема</h3></div>
+      <div class="seg" role="group" aria-label="Тема">
+        <button id="themeDark" aria-pressed="true">Тёмная</button>
+        <button id="themeLight" aria-pressed="false">Светлая</button>
+      </div>
+    </div>
+    <div class="card help">
       <div><h3>Установить как приложение</h3>
       <p class="msg">Иконка появится на экране телефона, приложение откроется на весь экран и будет работать даже без интернета.</p></div>
       <div><h3>iPhone и iPad</h3>
@@ -248,6 +265,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
     <button role="tab" data-v="quiz" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>Опрос</button>
     <button role="tab" data-v="plan" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>План</button>
     <button role="tab" data-v="help" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 7v.01M11 11h1v6h1"/><circle cx="12" cy="12" r="9"/></svg>Как</button>
+    <button role="tab" data-v="settings" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Настройки</button>
   </div>
 </nav>
 
@@ -512,7 +530,7 @@ function nextIdx(){for(let i=0;i<N;i++)if(!done.has(i))return i;return N-1}  // 
 let cur=nextIdx();
 
 /* ---------- вкладки ---------- */
-const VIEWS=["word","quiz","plan","help"];
+const VIEWS=["word","quiz","plan","help","settings"];
 function tab(v){
   if(!VIEWS.includes(v))v="word";
   VIEWS.forEach(x=>{$("v-"+x).hidden=x!==v});
@@ -524,6 +542,17 @@ function tab(v){
   store.set("tab",v);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.v));
+
+/* ---------- тема ---------- */
+function setTheme(t){
+  document.documentElement.dataset.theme=t;
+  $("themeColor").content=t==="light"?"#f6f8fc":"#121826";
+  $("themeDark").setAttribute("aria-pressed",t==="dark");
+  $("themeLight").setAttribute("aria-pressed",t==="light");
+}
+setTheme(document.documentElement.dataset.theme);
+$("themeDark").onclick=()=>{store.set("theme","dark");setTheme("dark")};
+$("themeLight").onclick=()=>{store.set("theme","light");setTheme("light")};
 
 /* ---------- главная ---------- */
 function show(i){
@@ -640,7 +669,7 @@ function build(){
 function openCurWeek(){document.querySelectorAll("#weeks details").forEach(det=>{if(det.querySelector(`button.item[data-i="${cur}"]`))det.open=true})}
 
 build();show(cur);progress();openCurWeek();
-tab(/^#(word|quiz|plan|help)$/.test(location.hash)?location.hash.slice(1):"word");
+tab(/^#(word|quiz|plan|help|settings)$/.test(location.hash)?location.hash.slice(1):"word");
 
 /* прогресс хранится на странице — один и тот же на телефоне и компьютере */
 (async()=>{
