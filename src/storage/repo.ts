@@ -13,6 +13,8 @@ import {
   type Gender,
   type QuizDir,
   type QuizMode,
+  type TabName,
+  type Theme,
   type Weak,
 } from '../domain'
 import {
@@ -29,7 +31,6 @@ import {
   parseQuizMode,
   parseTheme,
   parseWeak,
-  type Theme,
 } from './codecs'
 import { browserStorage, createKv, type StorageLike } from './kv'
 import { COURSE_KEYS, KEYS, PRE_COURSE_KEYS, courseKey, deckKey, lastKey, prevKey } from './keys'
@@ -67,7 +68,7 @@ export interface StorageRepo {
   readQuizDir(): QuizDir
   writeQuizDir(dir: QuizDir): void
   /** Last tab: only written, never read at start (materials/project/APP_SPEC.md → "4.1"). */
-  writeTab(tab: string): void
+  writeTab(tab: TabName): void
 
   /** Gender, learned words (filtered by the course size), weak words and days of the course. */
   readCourseState(course: CourseId): StoredCourseState

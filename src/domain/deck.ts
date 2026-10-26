@@ -116,6 +116,8 @@ export interface DeckFinished {
 }
 
 export interface DeckAnswer {
+  /** `false` — the deck was already solved and the answer was not recorded (nothing to write). */
+  readonly answered: boolean
   readonly deck: Deck
   readonly state: DeckState
   /** Set when this answer solved the deck. */
@@ -134,7 +136,7 @@ export function answerDeck(
   now: Date,
 ): DeckAnswer {
   const before = deckState(deck, done)
-  if (before.next === undefined) return { deck, state: before, finished: null }
+  if (before.next === undefined) return { answered: false, deck, state: before, finished: null }
   const next: Deck = { order: deck.order, ans: { ...deck.ans, [String(before.next)]: recalled } }
   const state = deckState(next, done)
   const finished =
@@ -144,7 +146,7 @@ export function answerDeck(
           prev: last,
         }
       : null
-  return { deck: next, state, finished }
+  return { answered: true, deck: next, state, finished }
 }
 
 /** Branch of the solved-deck text: 100% — no mistakes, from 80% — great, otherwise — repeat. */

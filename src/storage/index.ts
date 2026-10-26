@@ -2,7 +2,6 @@
 // and formats (architecture/react-port/storage.md).
 import { createRepo, type StorageRepo } from './repo'
 
-export type { Theme } from './codecs'
 // Only the repo is public: key names and raw access stay inside this folder.
 export type { StorageLike } from './kv'
 export {

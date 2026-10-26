@@ -3,7 +3,7 @@
 // script in index.html sets both; after that the store calls applyTheme on a theme change.
 // This module does not read or write localStorage: the `theme` key belongs to the storage layer.
 
-export type Theme = 'dark' | 'light'
+import type { Theme } from '../domain'
 
 /** Browser bar color of each theme; equals --paper (design/system/README.md, "Colors"). */
 export const THEME_COLOR: Readonly<Record<Theme, string>> = {

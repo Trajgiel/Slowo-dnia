@@ -15,11 +15,9 @@ import {
   type Gender,
   type QuizDir,
   type QuizMode,
+  type Theme,
   type Weak,
 } from '../domain'
-
-/** Color theme; the stored value is `"dark"` or `"light"`. */
-export type Theme = 'dark' | 'light'
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
