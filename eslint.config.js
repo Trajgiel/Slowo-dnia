@@ -95,6 +95,8 @@ const storageKeyMessage =
   'Storage key names live only in src/storage/keys.ts (architecture/react-port/storage.md).'
 const storageAccessMessage =
   'localStorage is used only by src/storage/kv.ts; go through the storage repo (architecture/react-port/storage.md).'
+// Caution: a later block repeating no-restricted-globals / -properties / -syntax replaces these lists
+// (flat config does not merge rule options), and turning a rule "off" for kv.ts also drops future bans.
 const storageConfigs = [
   {
     files: ['src/**/*.{ts,tsx}'],

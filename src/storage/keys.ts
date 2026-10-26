@@ -6,7 +6,7 @@ import { coursePrefix, type CourseId, type QuizDir } from '../domain'
 /** Keys shared by both courses. */
 export const KEYS = {
   course: 'course',
-  theme: 'theme',
+  theme: 'theme', // also read by the inline theme script in index.html (before modules load)
   qmode: 'qmode',
   qdir: 'qdir',
   tab: 'tab',
