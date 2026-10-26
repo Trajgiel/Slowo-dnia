@@ -189,8 +189,10 @@ describe('design tokens (tokens.css)', () => {
 
 // Color values written by hand: #hex, color functions and common named colors.
 // `transparent` and `currentColor` are not theme colors and are allowed.
+// A color name counts only as a whole CSS word: `white` in `white-space` or `nowrap-white` is not
+// a color (a hyphen is part of a CSS identifier, so `\b` alone is not enough).
 const COLOR_LITERAL =
-  /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(|\b(?:white|black|red|green|blue|gray|grey|silver|yellow|orange|purple|pink|brown|navy)\b/i
+  /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(|(?<![\w-])(?:white|black|red|green|blue|gray|grey|silver|yellow|orange|purple|pink|brown|navy)(?![\w-])/i
 
 // Every file of src/ (paths relative to it).
 const SOURCES = readdirSync(SRC, { withFileTypes: true, recursive: true })

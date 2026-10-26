@@ -5,7 +5,7 @@
 // - no requests to other domains: the only absolute URLs in the build are known non-request
 //   references (decisions/product/2026-10-25-no-analytics-v01.md: the app makes no requests outside).
 // Not here: byte equality of public/ with the prototype (checked once by qa against git history);
-// lint rules -> skeleton-lint.acceptance.test.ts; the placeholder text -> src/app/App.test.tsx.
+// lint rules -> skeleton-lint.acceptance.test.ts.
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -21,6 +21,10 @@ const NON_REQUEST_HOSTS = new Map([
   ['www.w3.org', 'XML namespaces (SVG, MathML, xlink) in react-dom'],
   ['react.dev', 'links in React error messages'],
   ['react.i18next.com', 'link in a react-i18next warning'],
+  [
+    'reactrouter.com',
+    'link in a React Router error message (text of a thrown error, never fetched)',
+  ],
   [
     'www.linkedin.com',
     "the author's link: copyright comment in index.html, later links on the How screen; the app makes no request to it",
