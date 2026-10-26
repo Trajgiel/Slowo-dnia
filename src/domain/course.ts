@@ -80,7 +80,9 @@ export function expandWords(course: CourseData, gender: Gender): Word[] {
   const words: Word[] = []
   if (course.id === 'kids') {
     course.themes.forEach(([title, entries], ti) => {
-      const theme = (girl ? undefined : own(course.boy.themes, title)) ?? title
+      // `||`, as in the prototype: an empty boy title falls back to the original one.
+      const boyTitle = girl ? undefined : own(course.boy.themes, title)
+      const theme = boyTitle === undefined || boyTitle === '' ? title : boyTitle
       for (const entry of entries) {
         const [pl, ru, tr] = (girl ? undefined : own(course.boy.words, entry[0])) ?? entry
         words.push({ pl, ru, tr, ti, theme })

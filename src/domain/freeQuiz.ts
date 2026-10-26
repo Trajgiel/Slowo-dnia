@@ -50,7 +50,7 @@ export function pickFree(
 /**
  * Next question: a word (`pickFree`), then a random direction (50/50), then the word goes to `recent`,
  * whose oldest entry drops out when it gets longer than `recentLimit`. Calls `rng()` twice when there
- * are learned words.
+ * are learned words; without learned words, once (for the direction).
  */
 export function nextFree(state: FreeQuizState, done: Done, weak: Weak, rng: Rng): FreeQuizState {
   const idx = pickFree(done, weak, state.recent, rng)

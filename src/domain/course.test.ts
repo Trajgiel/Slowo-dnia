@@ -90,6 +90,16 @@ describe('expandWords', () => {
     ])
   })
 
+  it('kids, boy: an empty boy theme title falls back to the original one (prototype `||`)', () => {
+    const course: CourseData = { ...kids, boy: { ...kids.boy, themes: { 'Я готова!': '' } } }
+    expect(expandWords(course, 'boy').map((w) => w.theme)).toEqual([
+      'Привет',
+      'Привет',
+      'Я готова!',
+      'Я готова!',
+    ])
+  })
+
   it('adult, boy (man): base forms', () => {
     expect(expandWords(adult, 'boy').map((w) => [w.pl, w.ru, w.tr, w.ti, w.theme])).toEqual([
       ['praca', 'работа', 'пра́ца', 0, 'Работа'],
