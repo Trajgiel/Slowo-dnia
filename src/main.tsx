@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { I18nextProvider } from 'react-i18next'
 import { App } from './app'
 import { createI18n } from './i18n'
+import './app/styles/index.css'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root is missing in index.html')

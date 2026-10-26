@@ -13,7 +13,7 @@ concurrency:
   # Only superseded PR runs are cancelled; every push to develop/main is checked.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# Job names are stable: they are required checks in branch protection (e2e, once added, is not required).
+# Job names are stable: they are required checks in branch protection (except e2e).
 jobs:
   prettier:
     runs-on: ubuntu-latest
@@ -78,5 +78,29 @@ jobs:
       - name: Vite build
         run: npm run build
 
-  # The e2e job (Playwright, presets/ci/react-vite in the workspace) is added by qa
-  # together with the first end-to-end test in e2e/.
+  # End-to-end tests (qa): Playwright against the production build (playwright.config.ts).
+  # Not a required check, so a slow or flaky browser run does not block merges while it is fixed.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Only the engines the projects in playwright.config.ts use.
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Playwright
+        run: npm run test:e2e
+      - name: Upload the Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
