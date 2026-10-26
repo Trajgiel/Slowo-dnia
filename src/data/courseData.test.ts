@@ -3,6 +3,7 @@
 // extracted from the prototype by scripts/extract-courses.ts. The only expected differences are
 // the three kids translations of content/ui/kids-course-data.md.
 import { describe, expect, it } from 'vitest'
+import { COURSES, expandWords, type AdultCourseData, type CourseData } from '../domain'
 import prototypeRaw from '../test/fixtures/prototype-courses.json?raw'
 import adultRaw from './adult.json?raw'
 import { isAdultCourseData } from './loadCourse'
@@ -110,6 +111,18 @@ describe('course data', () => {
         expand('adult', prototype.adult, noBoy, girl),
       )
     })
+  })
+
+  describe.each([
+    ['kids', { id: 'kids', themes: KIDS_THEMES, boy: KIDS_BOY }],
+    ['adult', { id: 'adult', themes: adult as AdultCourseData }],
+  ] as const satisfies readonly (readonly [string, CourseData])[])('%s', (id, data) => {
+    it.each(['girl', 'boy'] as const)(
+      'expandWords for %s gives COURSES.wordCount words',
+      (gender) => {
+        expect(expandWords(data, gender)).toHaveLength(COURSES[id].wordCount)
+      },
+    )
   })
 
   it('kids masculine forms are the prototype BOY and BOY_THEME', () => {

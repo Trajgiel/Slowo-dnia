@@ -1,11 +1,9 @@
 // Course loader (architecture/react-port/course-data.md in the workspace, "Загрузчик курса").
 // The kids course is in the main bundle; the adult course is a separate hashed JSON file,
 // fetched only when needed and kept in memory for the session.
-import type { AdultCourseData, CourseData, CourseId } from '../domain'
+import { COURSES, type AdultCourseData, type CourseData, type CourseId } from '../domain'
 import adultUrl from './adult.json?url'
 import { KIDS_BOY, KIDS_THEMES } from './kidsCourse'
-
-export const ADULT_WORD_COUNT = 1000
 
 /**
  * Why loading failed:
@@ -47,7 +45,7 @@ export function isAdultCourseData(value: unknown): value is AdultCourseData {
     if (!isString(title) || !Array.isArray(entries) || !entries.every(isAdultEntry)) return false
     words += entries.length
   }
-  return words === ADULT_WORD_COUNT
+  return words === COURSES.adult.wordCount
 }
 
 export interface CourseLoaderOptions {
