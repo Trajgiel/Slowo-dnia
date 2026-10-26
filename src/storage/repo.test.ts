@@ -58,7 +58,7 @@ describe('course state', () => {
     const items = { kid: '1', done: '{"a":1}', weak: '[1]', days: '{bad' }
     const { fake, repo } = setup(items)
     const state = repo.readCourseState('kids')
-    expect(state).toMatchObject({ gender: 'girl', weak: {}, days: [] })
+    expect(state).toMatchObject({ gender: 'boy', weak: {}, days: [] })
     expect(state.done.size).toBe(0)
     expect(fake.snapshot()).toEqual(items)
   })

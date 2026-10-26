@@ -5,7 +5,6 @@ import {
   DEFAULT_GENDER,
   DEFAULT_QUIZ_DIR,
   DEFAULT_QUIZ_MODE,
-  isGender,
   isQuizDir,
   isQuizMode,
   sanitizeDone,
@@ -40,9 +39,10 @@ export function parseQuizDir(value: unknown): QuizDir {
   return isQuizDir(value) ? value : DEFAULT_QUIZ_DIR
 }
 
-/** `"boy"` → boy, anything else → `"girl"`. */
+/** Like the prototype (`girl = value === "girl"`): no key → `"girl"`, `"girl"` → girl, anything else → boy. */
 export function parseGender(value: unknown): Gender {
-  return isGender(value) ? value : DEFAULT_GENDER
+  if (value === undefined) return DEFAULT_GENDER
+  return value === 'girl' ? 'girl' : 'boy'
 }
 
 /** Not an array → empty; elements other than integers `0 <= i < wordCount` are dropped. */

@@ -42,12 +42,15 @@ describe('parseQuizMode / parseQuizDir: unknown → default', () => {
 })
 
 describe('parseGender', () => {
-  it.each([['girl', 'girl'], ['boy', 'boy'], ['Boy', 'girl'], ...odd.map((v) => [v, 'girl'])])(
-    '%j → %s',
-    (value, expected) => {
-      expect(parseGender(value)).toBe(expected)
-    },
-  )
+  it.each<[unknown, string]>([
+    ['girl', 'girl'],
+    ['boy', 'boy'],
+    ['Boy', 'boy'],
+    [undefined, 'girl'],
+    ...odd.filter((v) => v !== undefined).map((v): [unknown, string] => [v, 'boy']),
+  ])('%j → %s', (value, expected) => {
+    expect(parseGender(value)).toBe(expected)
+  })
 })
 
 describe('parseDone', () => {
