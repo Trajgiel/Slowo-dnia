@@ -1,5 +1,5 @@
-// domain layer (architecture/react-port/modules.md in the workspace). Empty until its first module.
-export {}
+// domain layer (architecture/react-port/modules.md in the workspace). Re-exports the public API of its modules.
+export * from './backup'
 export * from './course'
 export * from './dates'
 export * from './deck'

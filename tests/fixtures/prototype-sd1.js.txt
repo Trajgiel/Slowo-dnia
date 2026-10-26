@@ -1,0 +1,40 @@
+//@@ index.html lines 674-676
+const COURSES={
+  kids:{name:"Детский курс",prefix:"",g:["Девочка","Мальчик"]},
+  adult:{name:"Курс для взрослых",prefix:"adult:",g:["Женщина","Мужчина"],src:"courses/adult.js"}};
+//@@ index.html lines 679-680
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+//@@ index.html lines 683-683
+const K=k=>COURSES[course].prefix+k;     // у каждого курса свои ключи в хранилище
+//@@ index.html lines 813-813
+function save(){store.set(K("done"),[...done].sort((a,b)=>a-b));store.set(K("weak"),weak);store.set(K("days"),days)}
+//@@ index.html lines 1015-1042
+/* ---------- резервная копия и сброс: только выбранный курс ----------
+   Код SD1.<k|a>.<base64url(JSON)> — прогресс одного курса (k — детский, a — для взрослых).
+   Если формат когда-нибудь изменится, коды SD1 должны продолжать восстанавливаться. */
+const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb64=str=>Uint8Array.from(atob(str.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+const toBits=arr=>{const bits=new Uint8Array(Math.ceil((Math.max(-1,...arr)+1)/8));arr.forEach(i=>bits[i>>3]|=1<<(i&7));return b64(bits)};
+const fromBits=str=>{const b=unb64(str),r=[];for(let i=0;i<b.length*8;i++)if(b[i>>3]&(1<<(i&7)))r.push(i);return r};
+const cleanWeak=w=>{const r={};if(w&&typeof w==="object")Object.entries(w).forEach(([i,c])=>{i=+i;c=+c;if(Number.isInteger(i)&&i>=0&&c>0)r[i]=Math.min(c,99)});return r};
+const packDays=d=>d.slice(-60).map(x=>x.replace(/-/g,"")).join(",");
+const unpackDays=str=>str?str.split(",").filter(x=>/^\d{8}$/.test(x)).map(x=>`${x.slice(0,4)}-${x.slice(4,6)}-${x.slice(6)}`):[];
+function packCourse(c){const p=COURSES[c].prefix;return{d:toBits(store.get(p+"done",[])),w:store.get(p+"weak",{}),s:packDays(store.get(p+"days",[]))}}
+const CODE_ID={kids:"k",adult:"a"};
+const unpackCourse=x=>x&&typeof x==="object"?{done:fromBits(x.d||""),weak:cleanWeak(x.w),days:unpackDays(x.s)}:null;
+function exportCode(){save();return`SD1.${CODE_ID[course]}.`+b64(new TextEncoder().encode(JSON.stringify(packCourse(course))))}
+// возвращает {kids, adult}: прогресс тех курсов, что есть в коде
+function importCode(code){
+  const c=code.replace(/\s+/g,"");
+  if(c.startsWith("SD1.")){
+    const[,id,data]=c.split(".");const cc=Object.keys(CODE_ID).find(k=>CODE_ID[k]===id);if(!cc||!data)throw 0;
+    return{[cc]:unpackCourse(JSON.parse(new TextDecoder().decode(unb64(data))))};
+  }
+  throw 0;
+}
+function writeCourse(c,x){
+  const p=COURSES[c].prefix;
+  store.set(p+"done",[...new Set(x.done)].sort((a,b)=>a-b));store.set(p+"weak",x.weak);store.set(p+"days",x.days);
+  ["ru","pl"].forEach(d=>["deck_","last_","prev_"].forEach(k=>store.set(p+k+d,null)));
+}
