@@ -7,8 +7,9 @@
 // - the prototype taken is the published one (git blobs of index.html and courses/adult.js on
 //   the prototype's `main`, the same as materials/project in the workspace).
 // The prototype comes from PROTOTYPE_DIR (a folder with index.html and courses/adult.js, e.g.
-// ../Slowo-dnia/materials/project) or from the git objects of this repository; a shallow clone
-// without the prototype history skips the test.
+// ../Slowo-dnia/materials/project) or from the git objects of this repository. Without both,
+// the test is skipped locally and fails in CI (process.env.CI): a CI checkout needs
+// fetch-depth: 0 or PROTOTYPE_DIR.
 // Not here: app data against the fixture, every word and both genders -> src/data/courseData.test.ts;
 // the build output of the courses -> tests/course-bundle.acceptance.test.ts.
 import { execFileSync } from 'node:child_process'
@@ -70,39 +71,52 @@ function readPrototype(): { html: string; adult: string } | null {
 }
 
 const prototype = readPrototype()
+const fromFolder = Boolean(process.env.PROTOTYPE_DIR)
 
-describe.skipIf(!prototype)('prototype fixture', () => {
+describe.skipIf(!prototype && !process.env.CI)('prototype fixture', () => {
   const source = prototype ?? { html: '', adult: '' }
 
-  it('is taken from the published prototype files', () => {
+  it('has the prototype sources available', () => {
+    expect(
+      prototype,
+      'prototype sources not found: CI checkout needs fetch-depth: 0 or PROTOTYPE_DIR',
+    ).not.toBeNull()
+  })
+
+  // Through git the blobs are read by id, so git itself guarantees the hash; the check says
+  // something only for a PROTOTYPE_DIR folder, whose files could be any version.
+  it.skipIf(!fromFolder)('is taken from the published prototype files', () => {
     expect(blobId(source.html)).toBe(PROTOTYPE_BLOBS.html)
     expect(blobId(source.adult)).toBe(PROTOTYPE_BLOBS.adult)
   })
 
-  it('equals the course data the prototype page holds after its scripts ran', () => {
-    const errors: string[] = []
-    const virtualConsole = new VirtualConsole()
-    virtualConsole.on('jsdomError', (error) => errors.push(error.message))
-    const { window } = new JSDOM(source.html, {
-      runScripts: 'dangerously',
-      url: 'http://localhost/',
-      virtualConsole,
-    })
-    try {
-      // The prototype loads courses/adult.js as a classic script that sets window.COURSE_ADULT.
-      window.eval(source.adult)
-      const live: unknown = JSON.parse(
-        window.eval(
-          'JSON.stringify({ kids: W, boy: BOY, boyTheme: BOY_THEME, adult: window.COURSE_ADULT })',
-        ) as string,
-      )
-      expect(errors).toEqual([])
-      const fixture: unknown = JSON.parse(
-        readFileSync(join(root, 'src/test/fixtures/prototype-courses.json'), 'utf8'),
-      )
-      expect(fixture).toEqual(live)
-    } finally {
-      window.close()
-    }
-  })
+  it.skipIf(!prototype)(
+    'equals the course data the prototype page holds after its scripts ran',
+    () => {
+      const errors: string[] = []
+      const virtualConsole = new VirtualConsole()
+      virtualConsole.on('jsdomError', (error) => errors.push(error.message))
+      const { window } = new JSDOM(source.html, {
+        runScripts: 'dangerously',
+        url: 'http://localhost/',
+        virtualConsole,
+      })
+      try {
+        // The prototype loads courses/adult.js as a classic script that sets window.COURSE_ADULT.
+        window.eval(source.adult)
+        const live: unknown = JSON.parse(
+          window.eval(
+            'JSON.stringify({ kids: W, boy: BOY, boyTheme: BOY_THEME, adult: window.COURSE_ADULT })',
+          ) as string,
+        )
+        expect(errors).toEqual([])
+        const fixture: unknown = JSON.parse(
+          readFileSync(join(root, 'src/test/fixtures/prototype-courses.json'), 'utf8'),
+        )
+        expect(fixture).toEqual(live)
+      } finally {
+        window.close()
+      }
+    },
+  )
 })
