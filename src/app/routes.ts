@@ -3,10 +3,9 @@
 // case-sensitive, as the prototype's `#word` match was.
 import { createElement, type ComponentType } from 'react'
 import { Navigate, type RouteObject } from 'react-router'
-import { TAB_NAMES, type TabName } from '../domain'
+import { TAB_NAMES, tabPath, type TabName } from '../domain'
 import { HelpScreen, PlanScreen, QuizScreen, SettingsScreen, WordScreen } from '../features'
 import { AppShell } from './AppShell'
-import { tabPath } from './routing/tabPath'
 
 const TAB_SCREENS: Readonly<Record<TabName, ComponentType>> = {
   word: WordScreen,

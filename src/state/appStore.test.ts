@@ -194,6 +194,26 @@ describe('start-up: the adult course did not load', () => {
 })
 
 describe('course choice', () => {
+  it('a press while the chosen course is being opened (onLoaded pending) starts nothing', async () => {
+    const { loader, store, actions } = setup()
+    await actions.start()
+    let release: () => void = vi.fn()
+    const first = actions.selectCourse(
+      'kids',
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve
+        }),
+    )
+    await Promise.resolve()
+    expect(await actions.selectCourse('adult')).toBe(false)
+    expect(loader.load).toHaveBeenCalledTimes(1)
+    release()
+    expect(await first).toBe(true)
+    expect(store.getState()).toMatchObject({ gate: 'ready', course: 'kids' })
+    expect(store.getState().courseLoad.status).toBe('ready')
+  })
+
   it('kids → course written, deck not made without learned words', async () => {
     const { ls, store, actions } = setup()
     await actions.start()

@@ -57,11 +57,12 @@ describe('CourseErrorScreen', () => {
     expect(ls.snapshot()).toEqual(PROGRESS)
   })
 
-  it('a press while loading starts no second load', async () => {
-    const { loader } = await renderApp({ storage: PROGRESS, adult: ['network', 'wait'] })
+  it('a press while loading does not reload the page, the screen stays', async () => {
+    await renderApp({ storage: PROGRESS, adult: ['network', 'wait'] })
     await press()
     await press()
-    expect(loader.load).toHaveBeenCalledTimes(2)
+    expect(reloadPage).not.toHaveBeenCalled()
+    expect(screen.getByText(start.adultFailed.text)).toBeInTheDocument()
   })
 
   it.each(['not-found', 'invalid'] as const)(

@@ -3,7 +3,7 @@
 // step: after the course loads the address becomes `#/word` by replacing the entry.
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import type { CourseId } from '../../domain'
+import { tabPath, type CourseId } from '../../domain'
 import { useAppActions } from '../../state'
 import './StartScreen.css'
 
@@ -30,7 +30,7 @@ export function StartScreen() {
   const navigate = useNavigate()
 
   const pick = (course: CourseId) => () => {
-    void selectCourse(course, () => navigate('/word', { replace: true }))
+    void selectCourse(course, () => navigate(tabPath('word'), { replace: true }))
   }
 
   return (

@@ -5,11 +5,10 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation, useNavigate } from 'react-router'
-import { TAB_NAMES, type TabName } from '../domain'
+import { TAB_NAMES, tabFromPath, tabPath, type TabName } from '../domain'
 import { scrollToTop } from '../platform'
 import { TabBar } from '../shared/ui'
 import { useAppActions } from '../state'
-import { tabFromPath, tabPath } from './routing/tabPath'
 
 export function TabsLayout() {
   const { t } = useTranslation()

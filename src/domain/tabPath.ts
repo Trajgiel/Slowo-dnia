@@ -1,4 +1,4 @@
-import { isTabName, type TabName } from '../../domain'
+import { isTabName, type TabName } from './settings'
 
 /** Address path of a tab: `quiz` → `/quiz`. */
 export const tabPath = (tab: TabName): string => `/${tab}`

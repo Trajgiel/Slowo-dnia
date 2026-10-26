@@ -2,6 +2,7 @@
 // (materials/project/APP_SPEC.md → "6.1. Слово (главная)"; analyst/features/react-port/us-9-look.md → "Доступность").
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { tabPath } from '../../domain'
 import { useCourse } from '../../state'
 import './CourseHeader.css'
 
@@ -19,7 +20,7 @@ export function CourseHeader() {
           className="coursechip"
           aria-label={t('courseChip.label')}
           onClick={() => {
-            void navigate('/settings')
+            void navigate(tabPath('settings'))
           }}
         >
           {t(`course.${course}`)}

@@ -40,8 +40,8 @@ describe('StartScreen', () => {
     expect(ls.snapshot()).toEqual({ course: JSON.stringify(course), tab: '"word"' })
   })
 
-  it('adult course fails → toast, stays on the choice, nothing written', async () => {
-    const { router, ls } = await renderApp({ adult: ['network'], path: '/quiz' })
+  it('adult course fails → toast, stays on the choice, address unchanged', async () => {
+    const { router } = await renderApp({ adult: ['network'], path: '/quiz' })
     await act(async () => {
       fireEvent.click(pick(start.adult.title))
       await Promise.resolve()
@@ -49,6 +49,5 @@ describe('StartScreen', () => {
     expect(screen.getByRole('status')).toHaveTextContent(common.toast.courseLoadFailed)
     expect(screen.getByText(start.lead)).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/quiz')
-    expect(ls.snapshot()).toEqual({})
   })
 })

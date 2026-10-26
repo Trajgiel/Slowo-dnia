@@ -146,11 +146,12 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
   return createStore<AppState>()((set, get) => {
     const isLoading = (): boolean => get().courseLoad.status === 'loading'
 
-    async function load(course: CourseId): Promise<LoadResult> {
+    /** `keepLoading`: on success the flag stays "loading" — the caller lowers it itself. */
+    async function load(course: CourseId, keepLoading = false): Promise<LoadResult> {
       set({ courseLoad: { status: 'loading', course, error: null } })
       try {
         const data = await deps.loadCourse(course)
-        set({ courseLoad: { status: 'ready', course, error: null } })
+        if (!keepLoading) set({ courseLoad: { status: 'ready', course, error: null } })
         return { ok: true, data }
       } catch (error) {
         // The loader throws only CourseLoadError; anything else is treated as a network failure.
@@ -209,14 +210,19 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
 
       async selectCourse(course, onLoaded) {
         if (isLoading()) return false
-        const result = await load(course)
+        // The loading flag stays up until the course is open, so a press in this window is cut off.
+        const result = await load(course, true)
         if (!result.ok) {
           get().actions.showToast('courseLoadFailed')
           return false
         }
-        await onLoaded?.()
-        openCourse(course, result.data)
-        set({ gate: 'ready' })
+        try {
+          await onLoaded?.()
+          openCourse(course, result.data)
+          set({ gate: 'ready' })
+        } finally {
+          set({ courseLoad: { status: 'ready', course, error: null } })
+        }
         return true
       },
 
