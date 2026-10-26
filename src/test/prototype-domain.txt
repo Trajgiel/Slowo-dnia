@@ -1,0 +1,203 @@
+//### Verbatim lines of the prototype (materials/project/index.html in the workspace), used by
+//### src/domain/prototype-parity.acceptance.test.ts as the reference behaviour. Lines starting with //###
+//### are headers added here; every other non-empty line is copied unchanged from the prototype.
+//### Globals not copied ($, document, toast, show, progress, save stubs, twoStep, W/BOY data,
+//### Date, Math.random, localStorage, speechSynthesis) are supplied by the test harness.
+//### COURSES, esc, store, state variables, K (674-676, 678-683)
+const COURSES={
+  kids:{name:"Детский курс",prefix:"",g:["Девочка","Мальчик"]},
+  adult:{name:"Курс для взрослых",prefix:"adult:",g:["Женщина","Мужчина"],src:"courses/adult.js"}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let course="kids",CW=W,N=0,kid,done,weak,days,cur=0;
+const DAYS=[];
+const K=k=>COURSES[course].prefix+k;     // у каждого курса свои ключи в хранилище
+//### fillDays, loadState (684-699)
+function fillDays(){
+  const girl=kid==="girl";DAYS.length=0;
+  CW.forEach(([t,items],ti)=>items.forEach(it=>{
+    const m=course==="kids"?(!girl&&BOY[it[0]]||it):(girl&&it[3]||it);
+    DAYS.push({pl:m[0],ru:m[1],tr:m[2],ti,theme:course==="kids"&&!girl&&BOY_THEME[t]||t});
+  }));
+  N=DAYS.length;
+}
+function loadState(){
+  kid=store.get(K("kid"),"girl");         // от этого зависят фразы от первого лица; по умолчанию девочка / женщина
+  fillDays();
+  done=new Set(store.get(K("done"),[]).filter(i=>Number.isInteger(i)&&i>=0&&i<N));
+  weak=store.get(K("weak"),{});          // слова, которые забылись в опросе: индекс → счёт
+  days=store.get(K("days"),[]);          // даты (ГГГГ-ММ-ДД), когда отмечали слово, — для серии дней
+  cur=nextIdx();
+}
+//### nextIdx (707)
+function nextIdx(){for(let i=0;i<N;i++)if(!done.has(i))return i;return N-1}  // первое невыученное с начала
+//### save, done.onclick, dayKey, streak, renderStreak (813, 818-839)
+function save(){store.set(K("done"),[...done].sort((a,b)=>a-b));store.set(K("weak"),weak);store.set(K("days"),days)}
+$("done").onclick=()=>{
+  if(done.has(cur))done.delete(cur);
+  else{done.add(cur);const t=dayKey(new Date());if(!days.includes(t)){days.push(t);days=days.slice(-400)}praise(cur)}
+  save();show(cur);progress();
+};
+
+/* серия дней подряд */
+const dayKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const pluralDays=n=>{const a=n%10,b=n%100;if(a===1&&b!==11)return"день";if(a>=2&&a<=4&&(b<12||b>14))return"дня";return"дней"};
+function streak(){
+  const set=new Set(days),d=new Date(),today=set.has(dayKey(d));
+  if(!today)d.setDate(d.getDate()-1);          // сегодня ещё не занимались — серия жива, если был вчерашний день
+  let n=0;while(set.has(dayKey(d))){n++;d.setDate(d.getDate()-1)}
+  return{n,today};
+}
+function renderStreak(){
+  const el=$("streak"),{n,today}=streak();
+  el.hidden=!days.length;
+  if(!n)el.textContent="Отметьте слово сегодня, чтобы начать новую серию 🔥";
+  else el.textContent=`🔥 ${n} ${pluralDays(n)} подряд`+(today?"":" — отметьте слово сегодня, чтобы не прервать серию");
+}
+
+//### praise (843-847)
+function praise(i){
+  if(done.size===N){toast(`🏆 Все ${N} слов выучены! Gratulacje!`);return}
+  const t=DAYS[i].ti;
+  if(DAYS.every((d,k)=>d.ti!==t||done.has(k)))toast(`🎉 Тема «${DAYS[i].theme}» выучена! Brawo!`);
+}
+//### speak (850-858)
+function speak(text,msgEl){
+  try{
+    const s=window.speechSynthesis;if(!s)throw 0;
+    s.cancel();const u=new SpeechSynthesisUtterance(text.replace(/…/g,"").replace(/\s\/\s/g,", "));u.lang="pl-PL";u.rate=.8;
+    const v=s.getVoices().find(v=>/^pl/i.test(v.lang));if(v)u.voice=v;
+    else if(msgEl){msgEl.hidden=false;msgEl.textContent="Польский голос не найден. Как добавить его на iPhone и Android — на вкладке «Как»."}
+    s.speak(u);
+  }catch(e){if(msgEl){msgEl.hidden=false;msgEl.textContent="Озвучка недоступна в этом браузере. Ориентируйтесь на транскрипцию."}}
+}
+//### quiz, shuffle, deck, markWeak, pick, nextFree, questionCard, renderQuiz, renderDeck, renderFree, plural (862-985)
+/* ---------- опрос ----------
+   «Колода»: каждое выученное слово один раз, со счётом и итогом; у направлений ru→pl и pl→ru свои колоды и результаты.
+   «Без конца»: выученные слова в случайном порядке и в обоих направлениях, без счёта. */
+const quiz={mode:store.get("qmode","deck"),dir:store.get("qdir","ru"),shown:false,free:{idx:null,dir:"ru",recent:[]}};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const newDeck=()=>({order:shuffle([...done]),ans:{}});
+function getDeck(dir){
+  let dk=store.get(K("deck_"+dir),null);
+  if(!dk||!Array.isArray(dk.order)||!dk.ans||typeof dk.ans!=="object"){dk=newDeck();store.set(K("deck_"+dir),dk)}
+  return dk;
+}
+function deckState(dk){
+  const live=dk.order.filter(i=>done.has(i)||i in dk.ans);   // слово, с которого сняли «Выучили», выпадает, если на него ещё не отвечали
+  const right=live.filter(i=>dk.ans[i]===true).length,wrong=live.filter(i=>dk.ans[i]===false).length;
+  return{total:live.length,right,wrong,next:live.find(i=>!(i in dk.ans))};
+}
+const fmtDate=k=>k?`${k.slice(8,10)}.${k.slice(5,7)}`:"";
+const resText=r=>`✓ ${r.right} из ${r.total} · ✗ ${r.wrong}${r.date?` · ${fmtDate(r.date)}`:""}`;
+function markWeak(i,ok){
+  if(ok){if(weak[i]){weak[i]--;if(!weak[i])delete weak[i]}}
+  else weak[i]=(weak[i]||0)+1;
+  save();
+}
+// «Без конца»: забытые слова попадаются чаще, недавние не повторяются
+function pick(){
+  const pool=[...done];if(!pool.length)return null;
+  const fresh=pool.filter(i=>!quiz.free.recent.includes(i));const base=fresh.length?fresh:pool;
+  const bag=[];base.forEach(i=>{const k=1+Math.min(3,weak[i]||0)*2;for(let j=0;j<k;j++)bag.push(i)});
+  return bag[Math.floor(Math.random()*bag.length)];
+}
+function nextFree(){
+  const f=quiz.free;f.idx=pick();f.dir=Math.random()<.5?"ru":"pl";quiz.shown=false;
+  if(f.idx!=null){f.recent.push(f.idx);if(f.recent.length>Math.min(10,Math.floor(done.size/2)))f.recent.shift()}
+  renderQuiz();
+}
+// карточка вопроса: ответ всегда в разметке и только скрыт, поэтому размер карточки не меняется
+function questionCard(i,dir,top,bottom){
+  const d=DAYS[i],ruFirst=dir==="ru",sp=`<button class="ghost qSpeak">🔊 Послушать</button>`;
+  const qc=(ruFirst?d.ru:d.pl).length>24?"q long":"q",ac=(ruFirst?d.pl:d.ru).length>24?"a long":"a";
+  return`<div class="card quiz">
+    <div class="ask">${top}</div>
+    <div class="qmid">
+      <div class="ask">${ruFirst?"Как это по-польски?":"Что это значит?"}</div>
+      ${ruFirst?`<p class="${qc}">${esc(d.ru)}</p>`:`<p class="${qc}" lang="pl">${esc(d.pl)}</p>${sp}`}
+      <div class="ans${quiz.shown?"":" inv"}" aria-hidden="${!quiz.shown}">
+        ${ruFirst?`<div class="${ac}" lang="pl">${esc(d.pl)}</div><div class="tr">[${esc(d.tr)}]</div>${sp}`:`<div class="${ac}">${esc(d.ru)}</div>`}
+      </div>
+    </div>
+    <div class="qbot">
+      ${quiz.shown?`<div class="qbtns"><button id="qNo">Не вспомнили</button><button id="qYes" class="isdone">Ответили ✓</button></div>`
+        :`<button id="qShow" class="primary full">Показать ответ</button>`}
+      <div class="score">${bottom}</div>
+    </div>
+  </div>`;
+}
+function renderQuiz(){
+  const box=$("quizBox"),deck=quiz.mode==="deck";
+  $("modeDeck").setAttribute("aria-pressed",deck);$("modeFree").setAttribute("aria-pressed",!deck);
+  // переключатель направления и плашка «вперемешку» лежат в одной ячейке, поэтому высота не меняется
+  $("dirSeg").classList.toggle("inv",!deck);$("dirSeg").inert=!deck;$("dirMix").classList.toggle("inv",deck);
+  ["ru","pl"].forEach(d=>$(d==="ru"?"dirRu":"dirPl").setAttribute("aria-pressed",quiz.dir===d));
+  $("quizLead").textContent=deck
+    ?"Каждое выученное слово — один раз. В конце будет результат."
+    :"Выученные слова в случайном порядке, без счёта и без конца.";
+  $("qmsg").hidden=true;
+  if(!done.size){
+    box.innerHTML=`<div class="card empty"><b>Пока нечего спрашивать</b><span>Отметьте хотя бы одно слово как «Выучили» на вкладке «Слово», и оно появится здесь.</span></div>`;
+    $("quizBelow").innerHTML="";return}
+  deck?renderDeck(box):renderFree(box);
+  box.querySelectorAll(".qSpeak").forEach(b=>b.onclick=()=>speak(DAYS[deck?deckState(getDeck(quiz.dir)).next:quiz.free.idx].pl,$("qmsg")));
+  if($("qShow"))$("qShow").onclick=()=>{quiz.shown=true;renderQuiz()};
+}
+function renderDeck(box){
+  const dir=quiz.dir;let dk=getDeck(dir),st=deckState(dk);
+  if(!st.total){dk=newDeck();store.set(K("deck_"+dir),dk);st=deckState(dk)}
+  else if(st.next!==undefined){              // новые выученные слова добавляются в конец незаконченной колоды
+    const extra=shuffle([...done].filter(i=>!dk.order.includes(i)));
+    if(extra.length){dk.order.push(...extra);store.set(K("deck_"+dir),dk);st=deckState(dk)}
+  }
+  const last=store.get(K("last_"+dir),null),prev=store.get(K("prev_"+dir),null);
+  if(st.next===undefined){                    // колода решена
+    const pct=Math.round(st.right/st.total*100);
+    box.innerHTML=`<div class="card quiz result">
+      <div class="ask">${dir==="ru"?"Русский → польский":"Польский → русский"}</div>
+      <div class="qmid">
+        <p class="q">Колода решена! ${pct===100?"🏆":"🎉"}</p>
+        <div class="rstats">
+          <div class="stat ok"><b>${st.right}</b><span>правильно</span></div>
+          <div class="stat bad"><b>${st.wrong}</b><span>неправильно</span></div>
+          <div class="stat"><b>${st.total}</b><span>всего</span></div>
+        </div>
+        <div class="msg">${pct===100?"Без единой ошибки!":pct>=80?`${pct}% — отличный результат!`:`${pct}% — повторите слова ещё раз.`}</div>
+      </div>
+      <div class="qbot"><button id="qAgain" class="primary full">Решить заново</button>
+        <div class="score">${done.size>st.total?`В новой колоде будет ${done.size} ${plural(done.size)}`:"&nbsp;"}</div></div>
+    </div>`;
+    $("quizBelow").innerHTML=prev?`<div class="msg">Прошлый результат: ${resText(prev)}</div>`:"";
+    $("qAgain").onclick=()=>{store.set(K("deck_"+dir),newDeck());quiz.shown=false;renderQuiz()};
+    return;
+  }
+  box.innerHTML=questionCard(st.next,dir,`Карточка ${st.right+st.wrong+1} из ${st.total}`,
+    `Правильно: <b class="okc">${st.right}</b> из ${st.total} · Неправильно: <b class="badc">${st.wrong}</b>`);
+  $("quizBelow").innerHTML=(last?`<div class="msg">Прошлый результат: ${resText(last)}</div>`:"")
+    +(st.right+st.wrong?`<button id="qRestart" class="ghost">Начать колоду заново</button>`:"");
+  const answer=ok=>{
+    dk.ans[st.next]=ok;markWeak(st.next,ok);store.set(K("deck_"+dir),dk);quiz.shown=false;
+    const s2=deckState(dk);
+    if(s2.next===undefined){if(last)store.set(K("prev_"+dir),last);store.set(K("last_"+dir),{right:s2.right,wrong:s2.wrong,total:s2.total,date:dayKey(new Date())})}
+    renderQuiz();
+  };
+  if($("qYes"))$("qYes").onclick=()=>answer(true);
+  if($("qNo"))$("qNo").onclick=()=>answer(false);
+  if($("qRestart"))twoStep($("qRestart"),"Начать колоду заново","Счёт обнулится. Нажмите ещё раз",()=>{store.set(K("deck_"+dir),newDeck());quiz.shown=false;renderQuiz()});
+}
+function renderFree(box){
+  const f=quiz.free;
+  if(f.idx==null||!done.has(f.idx)){nextFree();return}
+  box.innerHTML=questionCard(f.idx,f.dir,f.dir==="ru"?"Русский → польский":"Польский → русский",`Выучено ${done.size} ${plural(done.size)}`);
+  $("quizBelow").innerHTML=`<button id="qSkip" class="ghost">Другое слово</button>`;
+  if($("qYes"))$("qYes").onclick=()=>{markWeak(f.idx,true);nextFree()};
+  if($("qNo"))$("qNo").onclick=()=>{markWeak(f.idx,false);nextFree()};
+  $("qSkip").onclick=nextFree;
+}
+function plural(n){const a=n%10,b=n%100;if(a===1&&b!==11)return"слово";if(a>=2&&a<=4&&(b<12||b>14))return"слова";return"слов"}
+//### startup: course choice (1006-1008), wrapped by the harness
+  let c=store.get("course",null);
+  // у тех, кто пользовался приложением до появления курсов, остаётся детский курс
+  if(!c&&["done","days","kid","theme","tab","qmode"].some(k=>localStorage.getItem(k)!==null))c="kids";
