@@ -4,53 +4,13 @@
 // (architecture/react-port/storage.md → "«Старый пользователь»", "Когда что пишется";
 // architecture/react-port/course-data.md → "Ошибка загрузки (П-6)").
 import { describe, expect, it, vi } from 'vitest'
-import { CourseLoadError, type CourseLoadErrorKind, type LoadCourse } from '../data'
-import type { CourseData, CourseId } from '../domain'
 import { createRepo } from '../storage'
 import { FakeStorage } from '../test/fakeStorage'
+import { fakeLoader, type AdultOutcome } from '../test/fakeLoader'
 import { seqRng } from '../test/rng'
 import { createAppStore } from './appStore'
 
-const KIDS: CourseData = {
-  id: 'kids',
-  themes: [['Тема', Array.from({ length: 500 }, (_, i) => [`k${String(i)}`, 'р', 'т'] as const)]],
-  boy: { words: {}, themes: {} },
-}
-const ADULT: CourseData = {
-  id: 'adult',
-  themes: [['Тема', Array.from({ length: 1000 }, (_, i) => [`a${String(i)}`, 'р', 'т'] as const)]],
-}
-
-interface Deferred {
-  resolve: () => void
-  reject: (kind: CourseLoadErrorKind) => void
-}
-
-/** Loader: kids at once; adult as the `adult` queue says (`ok`, an error kind, or `wait` — settled by hand). */
-function fakeLoader(adult: (CourseLoadErrorKind | 'ok' | 'wait')[] = ['ok']) {
-  const pending: Deferred[] = []
-  const load = vi.fn<LoadCourse>((id: CourseId) => {
-    if (id === 'kids') return Promise.resolve(KIDS)
-    const next = adult.length > 1 ? adult.shift() : adult[0]
-    if (next === 'ok') return Promise.resolve(ADULT)
-    if (next === 'wait') {
-      return new Promise<CourseData>((resolve, reject) => {
-        pending.push({
-          resolve: () => {
-            resolve(ADULT)
-          },
-          reject: (kind) => {
-            reject(new CourseLoadError(kind, kind))
-          },
-        })
-      })
-    }
-    return Promise.reject(new CourseLoadError(next ?? 'network', 'failed'))
-  })
-  return { load, pending }
-}
-
-function setup(items: Record<string, string> = {}, adult?: Parameters<typeof fakeLoader>[0]) {
+function setup(items: Record<string, string> = {}, adult?: AdultOutcome[]) {
   const ls = new FakeStorage(items)
   const loader = fakeLoader(adult)
   const store = createAppStore({

@@ -73,25 +73,25 @@ export interface Session {
 
 export interface AppActions {
   /** Start-up: "old user" → course → loading → gate. Runs once; later calls do nothing. */
-  start(): Promise<void>
+  start: () => Promise<void>
   /**
    * Course choice on the start screen and in "Настройки": loads the course; on success writes
    * `course`, opens it and reconciles the deck; on failure shows the toast and changes nothing.
    * `onLoaded` runs after the data has loaded and before the course is shown (the start screen moves
    * the address to `/word` there). A call while a course is loading does nothing and returns `false`.
    */
-  selectCourse(course: CourseId, onLoaded?: () => void | Promise<void>): Promise<boolean>
+  selectCourse: (course: CourseId, onLoaded?: () => void | Promise<void>) => Promise<boolean>
   /**
    * "Попробовать ещё раз" on the "adult course did not load" screen: a new request; on failure the toast.
    * Does nothing while loading or outside that screen. Page reload for `not-found` / `invalid` is the
    * screen's job (`retryNeedsReload`).
    */
-  retryCourse(): Promise<void>
+  retryCourse: () => Promise<void>
   /** A tab was opened (also by "Назад" / "Вперёд"): writes `tab`; the quiz reconciles the deck. */
-  openTab(tab: TabName): void
+  openTab: (tab: TabName) => void
   /** Deck reconciliation (prototype `renderDeck` side effect); see `architecture/react-port/storage.md`. */
-  syncDeck(): void
-  showToast(id: ToastId): void
+  syncDeck: () => void
+  showToast: (id: ToastId) => void
 }
 
 export interface AppState {
