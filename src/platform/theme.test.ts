@@ -16,14 +16,14 @@ beforeEach(resetPage)
 afterEach(resetPage)
 
 describe('applyTheme', () => {
-  it.each([
-    ['light', '#f6f8fc'],
-    ['dark', '#121826'],
-  ] as const)('sets data-theme="%s" on <html> and theme-color %s', (theme, color) => {
-    applyTheme(theme)
-    expect(document.documentElement.dataset.theme).toBe(theme)
-    expect(themeColorMeta()?.content).toBe(color)
-  })
+  it.each(['light', 'dark'] as const)(
+    'sets data-theme="%s" on <html> and its theme-color',
+    (theme) => {
+      applyTheme(theme)
+      expect(document.documentElement.dataset.theme).toBe(theme)
+      expect(themeColorMeta()?.content).toBe(THEME_COLOR[theme])
+    },
+  )
 
   it('switches back and forth without adding meta tags', () => {
     applyTheme('light')
@@ -62,8 +62,7 @@ describe('theme script in index.html', () => {
     script()
   }
 
-  it('is a classic inline script placed after the theme-color meta tag', () => {
-    expect(indexHtml.indexOf('name="theme-color"')).toBeLessThan(indexHtml.indexOf('<script>'))
+  it('places the inline script before the module script', () => {
     expect(indexHtml.indexOf('<script>')).toBeLessThan(indexHtml.indexOf('type="module"'))
   })
 

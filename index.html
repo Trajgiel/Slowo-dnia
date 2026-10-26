@@ -17,7 +17,8 @@
     <meta name="theme-color" content="#121826" />
     <!-- Theme before the first paint, so the page never flashes the other theme.
          Same rule as the prototype: the stored "theme" is JSON; anything but "light" is dark.
-         Colors equal --paper of each theme; later changes go through src/platform/theme.ts. -->
+         Colors equal --paper of each theme; later changes go through src/platform/theme.ts.
+         Kept in sync by src/platform/theme.test.ts (THEME_COLOR) and src/app/styles/tokens.acceptance.test.ts (--paper). -->
     <script>
       ;(function () {
         var t
