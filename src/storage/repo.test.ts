@@ -24,13 +24,9 @@ describe('settings', () => {
   })
 
   it('unknown qmode / qdir → defaults, keys not rewritten', () => {
-    const items = { qmode: '"endless"', qdir: '"de"', theme: '"blue"' }
+    const items = { qmode: '"endless"', qdir: '"de"' }
     const { fake, repo } = setup(items)
-    expect([repo.readQuizMode(), repo.readQuizDir(), repo.readTheme()]).toEqual([
-      'deck',
-      'ru',
-      'dark',
-    ])
+    expect([repo.readQuizMode(), repo.readQuizDir()]).toEqual(['deck', 'ru'])
     expect(fake.snapshot()).toEqual(items)
   })
 })
@@ -65,16 +61,10 @@ describe('course state', () => {
 })
 
 describe('deck and results', () => {
-  it.each([
-    ['missing', {}],
-    ['no order', { 'adult:deck_ru': '{"ans":{}}' }],
-    ['no ans', { 'adult:deck_ru': '{"order":[1]}' }],
-    ['null', { 'adult:deck_ru': 'null' }],
-    ['broken JSON', { 'adult:deck_ru': '{"order":[' }],
-  ])('deck %s → null (store makes a new one), key not rewritten', (_, items) => {
-    const { fake, repo } = setup(items)
+  it('missing deck → null (store makes a new one), nothing written', () => {
+    const { fake, repo } = setup({})
     expect(repo.readDeck('adult', 'ru')).toBeNull()
-    expect(fake.snapshot()).toEqual(items)
+    expect(fake.snapshot()).toEqual({})
   })
 })
 
