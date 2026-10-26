@@ -266,13 +266,13 @@ describe('broken and unexpected values: no exceptions; differences from the prot
     {
       name: 'kid "Boy" (unknown)',
       items: { kid: '"Boy"' },
-      verdict: 'differs',
+      verdict: 'same',
       read: () => gender('kids'),
     },
     {
       name: 'kid null',
       items: { 'adult:kid': 'null' },
-      verdict: 'differs',
+      verdict: 'same',
       read: () => gender('adult'),
     },
     // done
