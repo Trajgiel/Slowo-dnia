@@ -1,0 +1,51 @@
+/* Bottom tabs (design/system/README.md in the workspace, "Layout and safe area"). */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-tabs);
+  background: var(--card);
+  border-top: var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(var(--space-8), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--space-8), env(safe-area-inset-right, 0px));
+}
+
+.tabbar__in {
+  max-width: var(--col-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.tabbar__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tabh);
+  /* One-off padding of the tab button (design/system/README.md, "One-off numbers"). */
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-chip);
+  font-weight: 800;
+}
+
+.tabbar__tab[aria-selected='true'] {
+  color: var(--accent);
+}
+
+.tabbar__tab svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

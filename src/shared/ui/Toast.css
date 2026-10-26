@@ -1,0 +1,34 @@
+/* Toast above the tabs (design/system/README.md in the workspace, "Motion", "Layout and safe area").
+   With reduced motion it only fades (decisions/product/2026-10-26-toast-reduced-motion.md). */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabh) + env(safe-area-inset-bottom, 0px) + var(--space-14));
+  z-index: var(--z-toast);
+  max-width: min(92vw, 420px);
+  padding: var(--space-12) var(--space-18);
+  border-radius: var(--radius-toast);
+  background: var(--done);
+  color: var(--card);
+  font-weight: 800;
+  text-align: center;
+  box-shadow: var(--shadow-toast);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, var(--toast-shift));
+  transition:
+    opacity var(--dur-toast),
+    transform var(--dur-toast);
+}
+
+.toast--on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transform: translate(-50%, 0);
+    transition: opacity var(--dur-toast);
+  }
+}

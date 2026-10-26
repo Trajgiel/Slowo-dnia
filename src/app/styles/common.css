@@ -1,0 +1,58 @@
+/* Shared building blocks of all screens: screen column, card, lead and small text, buttons
+   (materials/project/APP_SPEC.md → "8.2. Стиль"; tokens — design/system/README.md in the workspace). */
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.card {
+  background: var(--card);
+  border: var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+}
+
+.msg {
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+/* Buttons: no zoom on double tap (touch-action, US-12), visible focus ring, pressed scale. */
+button {
+  min-height: var(--hit-48);
+  padding: var(--space-10) var(--space-14);
+  border: var(--border-control);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:active {
+  transform: scale(var(--press-scale));
+}
+
+button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--card);
+}
+
+.full {
+  width: 100%;
+}

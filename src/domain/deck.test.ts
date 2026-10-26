@@ -125,6 +125,7 @@ describe('answerDeck', () => {
   it('records the answer; deck not solved → no result', () => {
     const deck: Deck = { order: [2, 1], ans: {} }
     const r = answerDeck(deck, new Set([1, 2]), false, last, now)
+    expect(r.answered).toBe(true)
     expect(r.deck).toEqual({ order: [2, 1], ans: { 2: false } })
     expect(r.state).toEqual({ total: 2, right: 0, wrong: 1, next: 1 })
     expect(r.finished).toBeNull()
@@ -158,6 +159,7 @@ describe('answerDeck', () => {
   it('solved deck: nothing changes', () => {
     const deck: Deck = { order: [1], ans: { 1: true } }
     const r = answerDeck(deck, new Set([1]), false, last, now)
+    expect(r.answered).toBe(false)
     expect(r.deck).toBe(deck)
     expect(r.finished).toBeNull()
   })

@@ -63,6 +63,13 @@ describe('storage keys and access', () => {
     )
   })
 
+  it('the entry point imports storage internals → error, the index → allowed', async () => {
+    expect(await errors('src/main.tsx', "export * from './storage/kv'\n")).toContain(
+      'no-restricted-imports',
+    )
+    expect(await errors('src/main.tsx', "export { storage } from './storage'\n")).toEqual([])
+  })
+
   it.each([
     ['storage index', "export { storage } from '../storage'\n"],
     ['bare course prefix', "export const p = 'adult:'\n"],

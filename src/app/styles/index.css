@@ -1,4 +1,5 @@
-/* Global styles, in order: tokens, fonts, page base. */
+/* Global styles, in order: tokens, fonts, page base, shared building blocks. */
 @import './tokens.css';
 @import './fonts.css';
 @import './base.css';
+@import './common.css';

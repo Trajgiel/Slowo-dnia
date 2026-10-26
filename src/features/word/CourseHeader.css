@@ -1,0 +1,19 @@
+/* Header with the course chip (materials/project/APP_SPEC.md → "6.1"; tokens — design/system/README.md). */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-10);
+}
+
+.coursechip {
+  min-height: var(--hit-36);
+  padding: var(--space-4) var(--space-12);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--soft);
+  color: var(--accent);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  white-space: nowrap;
+}

@@ -50,6 +50,12 @@ const LAYER_RULES = {
 /** Matches a relative import that goes through the folder `layer` (`../storage`, `../../storage/keys`). */
 const layerImport = (layer) => `^\\.{1,2}/(?:.*/)?${layer}(?:/|$)`
 
+/** Import pattern that lets `who` reach src/storage only through its index. */
+const storageIndexOnlyPattern = (who) => ({
+  regex: '^\\.{1,2}/(?:.*/)?storage/.+',
+  message: `${who} imports src/storage only through its index (architecture/react-port/storage.md).`,
+})
+
 const layerConfigs = Object.entries(LAYER_RULES).map(
   ([layer, { forbidden, packages = [], storageIndexOnly = false }]) => ({
     files: [`src/${layer}/**/*.{ts,tsx}`],
@@ -71,20 +77,21 @@ const layerConfigs = Object.entries(LAYER_RULES).map(
                   },
                 ]
               : []),
-            ...(storageIndexOnly
-              ? [
-                  {
-                    regex: '^\\.{1,2}/(?:.*/)?storage/.+',
-                    message: `src/${layer} imports src/storage only through its index (architecture/react-port/storage.md).`,
-                  },
-                ]
-              : []),
+            ...(storageIndexOnly ? [storageIndexOnlyPattern(`src/${layer}`)] : []),
           ],
         },
       ],
     },
   }),
 )
+
+// The entry point is outside the layers but wires the app together like app/: storage only through its index.
+const entryConfig = {
+  files: ['src/main.tsx'],
+  rules: {
+    'no-restricted-imports': ['error', { patterns: [storageIndexOnlyPattern('src/main.tsx')] }],
+  },
+}
 
 // Storage keys (architecture/react-port/storage.md, "Устройство модуля"): only src/storage/kv.ts touches
 // localStorage, only src/storage/keys.ts spells key names. Generic names (done, theme, tab, ...) are
@@ -149,6 +156,7 @@ export default defineConfig([
     },
   },
   ...layerConfigs,
+  entryConfig,
   ...storageConfigs,
   // No interface text in markup: JSX text and user-visible attributes come from the
   // i18n dictionaries (architecture/react-port/i18n.md, "No strings in markup").

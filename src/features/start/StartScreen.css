@@ -1,0 +1,31 @@
+/* Course choice (materials/project/APP_SPEC.md → "6.0"; tokens — design/system/README.md in the workspace). */
+.start {
+  gap: var(--space-14);
+  padding-top: var(--space-12);
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-18);
+  border-radius: var(--radius-card);
+  text-align: left;
+}
+
+.pick b {
+  font-size: var(--fs-pick);
+  font-weight: 900;
+}
+
+.pick span {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.pick .msg {
+  color: var(--muted);
+  font-weight: 600;
+}

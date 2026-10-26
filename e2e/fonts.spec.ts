@@ -139,6 +139,11 @@ test('while the fonts are loading, the text is visible in the fallback font', as
     await page.goto('./', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await addSamples(page)
+    // Pin the samples to the top of the window: a CDP screenshot clip outside the window is blank,
+    // and the page length and the fallback font metrics differ between machines.
+    await page.locator('#font-samples').evaluate((el) => {
+      el.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: white;'
+    })
     const pending = await page.evaluate(() =>
       [...document.fonts].some((face) => face.status === 'loading'),
     )
