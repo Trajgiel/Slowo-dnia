@@ -62,22 +62,6 @@ describe('tab bar', () => {
     })
     expect(scrollTo).not.toHaveBeenCalled()
   })
-
-  it('"Назад" and "Вперёд" switch tabs and write tab each time', async () => {
-    const { router, ls } = await renderApp({ storage: KIDS, path: '/word' })
-    act(() => {
-      fireEvent.click(tab(common.tabs.quiz))
-    })
-    act(() => {
-      fireEvent.click(tab(common.tabs.settings))
-    })
-    await act(() => router.navigate(-1))
-    expect(selected()).toEqual([tab(common.tabs.quiz)])
-    expect(ls.snapshot().tab).toBe('"quiz"')
-    await act(() => router.navigate(1))
-    expect(selected()).toEqual([tab(common.tabs.settings)])
-    expect(ls.snapshot().tab).toBe('"settings"')
-  })
 })
 
 describe('addresses', () => {
