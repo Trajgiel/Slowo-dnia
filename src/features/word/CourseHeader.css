@@ -15,7 +15,5 @@
   color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 800;
-  /* Keeps the chip on one line like the prototype's nowrap: the item stays at its max-content width
-     and the heading shrinks instead. */
-  flex: none;
+  white-space: nowrap;
 }

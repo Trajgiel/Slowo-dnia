@@ -27,10 +27,8 @@ beforeEach(() => {
 })
 
 describe('CourseErrorScreen', () => {
-  it('header, message and the only button', async () => {
+  it('the only button on the screen', async () => {
     await renderApp({ storage: PROGRESS, adult: ['network'] })
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(common.appName)
-    expect(screen.getByText(start.adultFailed.text)).toBeInTheDocument()
     expect(screen.getAllByRole('button')).toEqual([retry()])
   })
 

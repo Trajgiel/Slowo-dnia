@@ -1,13 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createHashRouter } from 'react-router'
+import './app/styles/index.css'
 import { App, appRoutes, migrateLegacyAddress } from './app'
 import { loadCourse } from './data'
 import { createI18n } from './i18n'
 import { disableScrollRestoration } from './platform'
 import { createAppStore } from './state'
 import { storage } from './storage'
-import './app/styles/index.css'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root is missing in index.html')
