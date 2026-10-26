@@ -26,11 +26,14 @@ const LAYERS = [
   'domain',
 ]
 
-/** @type {Record<string, { forbidden: string[], packages?: string[] }>} */
+// `storageIndexOnly`: the layer may use src/storage only through its index (the repo); key names and raw
+// localStorage access stay inside the folder (architecture/react-port/storage.md, "Устройство модуля").
+/** @type {Record<string, { forbidden: string[], packages?: string[], storageIndexOnly?: boolean }>} */
 const LAYER_RULES = {
+  app: { forbidden: [], storageIndexOnly: true },
   features: { forbidden: ['app', 'storage'] },
   'shared/ui': { forbidden: ['app', 'features', 'state', 'storage', 'data'] },
-  state: { forbidden: ['app', 'features', 'shared'] },
+  state: { forbidden: ['app', 'features', 'shared'], storageIndexOnly: true },
   storage: {
     forbidden: ['app', 'features', 'shared', 'state', 'data', 'platform', 'i18n'],
     packages: ['react', 'react-dom', 'react-i18next', 'zustand'],
@@ -47,31 +50,84 @@ const LAYER_RULES = {
 /** Matches a relative import that goes through the folder `layer` (`../storage`, `../../storage/keys`). */
 const layerImport = (layer) => `^\\.{1,2}/(?:.*/)?${layer}(?:/|$)`
 
-const layerConfigs = Object.entries(LAYER_RULES).map(([layer, { forbidden, packages = [] }]) => ({
-  files: [`src/${layer}/**/*.{ts,tsx}`],
-  rules: {
-    'no-restricted-imports': [
-      'error',
-      {
-        patterns: [
-          ...forbidden.map((target) => ({
-            regex: layerImport(target),
-            message: `src/${layer} must not import src/${target}: imports go only down the layers (architecture/react-port/modules.md).`,
-          })),
-          // Packages and their subpaths (`react-dom/client`, `react/jsx-runtime`).
-          ...(packages.length > 0
-            ? [
-                {
-                  regex: `^(${packages.join('|')})(/|$)`,
-                  message: `src/${layer} must not depend on these packages (architecture/react-port/modules.md).`,
-                },
-              ]
-            : []),
-        ],
-      },
-    ],
+const layerConfigs = Object.entries(LAYER_RULES).map(
+  ([layer, { forbidden, packages = [], storageIndexOnly = false }]) => ({
+    files: [`src/${layer}/**/*.{ts,tsx}`],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            ...forbidden.map((target) => ({
+              regex: layerImport(target),
+              message: `src/${layer} must not import src/${target}: imports go only down the layers (architecture/react-port/modules.md).`,
+            })),
+            // Packages and their subpaths (`react-dom/client`, `react/jsx-runtime`).
+            ...(packages.length > 0
+              ? [
+                  {
+                    regex: `^(${packages.join('|')})(/|$)`,
+                    message: `src/${layer} must not depend on these packages (architecture/react-port/modules.md).`,
+                  },
+                ]
+              : []),
+            ...(storageIndexOnly
+              ? [
+                  {
+                    regex: '^\\.{1,2}/(?:.*/)?storage/.+',
+                    message: `src/${layer} imports src/storage only through its index (architecture/react-port/storage.md).`,
+                  },
+                ]
+              : []),
+          ],
+        },
+      ],
+    },
+  }),
+)
+
+// Storage keys (architecture/react-port/storage.md, "Устройство модуля"): only src/storage/kv.ts touches
+// localStorage, only src/storage/keys.ts spells key names. Generic names (done, theme, tab, ...) are
+// ordinary words in code (`kind: 'theme'`, `role="tab"`), so the literal check covers the names that are
+// unmistakably keys; the rest are guarded by the localStorage ban and the storage index-only imports.
+const STORAGE_KEY_LITERAL = '/^(?:adult:.+|qmode|qdir|(?:deck|last|prev)_(?:ru|pl)?)$/'
+const storageKeyMessage =
+  'Storage key names live only in src/storage/keys.ts (architecture/react-port/storage.md).'
+const storageAccessMessage =
+  'localStorage is used only by src/storage/kv.ts; go through the storage repo (architecture/react-port/storage.md).'
+// Caution: a later block repeating no-restricted-globals / -properties / -syntax replaces these lists
+// (flat config does not merge rule options), and turning a rule "off" for kv.ts also drops future bans.
+const storageConfigs = [
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        { name: 'localStorage', message: storageAccessMessage },
+        { name: 'sessionStorage', message: storageAccessMessage },
+      ],
+      'no-restricted-properties': [
+        'error',
+        { property: 'localStorage', message: storageAccessMessage },
+        { property: 'sessionStorage', message: storageAccessMessage },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        { selector: `Literal[value=${STORAGE_KEY_LITERAL}]`, message: storageKeyMessage },
+        {
+          selector: `TemplateElement[value.raw=${STORAGE_KEY_LITERAL}]`,
+          message: storageKeyMessage,
+        },
+      ],
+    },
   },
-}))
+  {
+    files: ['src/storage/kv.ts'],
+    rules: { 'no-restricted-globals': 'off', 'no-restricted-properties': 'off' },
+  },
+  { files: ['src/storage/keys.ts'], rules: { 'no-restricted-syntax': 'off' } },
+]
 
 export default defineConfig([
   globalIgnores(['dist', 'coverage', 'test-results', 'playwright-report']),
@@ -93,6 +149,7 @@ export default defineConfig([
     },
   },
   ...layerConfigs,
+  ...storageConfigs,
   // No interface text in markup: JSX text and user-visible attributes come from the
   // i18n dictionaries (architecture/react-port/i18n.md, "No strings in markup").
   {
