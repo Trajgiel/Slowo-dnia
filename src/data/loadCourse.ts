@@ -14,6 +14,15 @@ import { KIDS_BOY, KIDS_THEMES } from './kidsCourse'
  */
 export type CourseLoadErrorKind = 'network' | 'not-found' | 'invalid'
 
+/**
+ * A new request cannot fix `not-found` and `invalid` (it would get the same missing or broken file),
+ * so "Попробовать ещё раз" reloads the page for them; `network` is retried
+ * (architecture/react-port/course-data.md → "Ошибка загрузки (П-6)"; decisions/stack/2026-10-26-course-retry-reload.md).
+ */
+export function retryNeedsReload(kind: CourseLoadErrorKind): boolean {
+  return kind !== 'network'
+}
+
 export class CourseLoadError extends Error {
   readonly kind: CourseLoadErrorKind
 

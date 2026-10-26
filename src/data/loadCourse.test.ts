@@ -4,7 +4,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import adultRaw from './adult.json?raw'
 import { KIDS_BOY, KIDS_THEMES } from './kidsCourse'
-import { CourseLoadError, createCourseLoader, isAdultCourseData } from './loadCourse'
+import {
+  CourseLoadError,
+  createCourseLoader,
+  isAdultCourseData,
+  retryNeedsReload,
+} from './loadCourse'
 
 const URL = '/Slowo-dnia/assets/adult-abc123.json'
 const adult: unknown = JSON.parse(adultRaw)
@@ -133,5 +138,15 @@ describe('isAdultCourseData', () => {
     ['1001 words', [theme(Array<unknown>(1001).fill(form))]],
   ])('%s → false', (_case, value) => {
     expect(isAdultCourseData(value)).toBe(false)
+  })
+})
+
+describe('retryNeedsReload', () => {
+  it.each([
+    ['network', false],
+    ['not-found', true],
+    ['invalid', true],
+  ] as const)('%s → %s', (kind, expected) => {
+    expect(retryNeedsReload(kind)).toBe(expected)
   })
 })
