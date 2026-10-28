@@ -35,6 +35,8 @@ describe('"Настройки"', () => {
       settings.kid.title,
       settings.theme.title,
       settings.install.title,
+      settings.backup.title,
+      settings.reset.title,
       settings.contacts.title,
     ])
     expect(document.querySelector('.view > :last-child')).toHaveClass('copy')

@@ -63,3 +63,49 @@ a.btn svg {
 .copy a:hover {
   text-decoration: underline;
 }
+
+/* "Резервная копия прогресса": two buttons in a row; one when the browser cannot share. */
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+}
+
+.row2.one {
+  grid-template-columns: 1fr;
+}
+
+/* Code field: min-height 84px and vertical resize are its one-offs
+   (design/system/README.md → "Одноразовые числа"). */
+textarea.code {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 84px;
+  padding: var(--space-10) var(--space-12);
+  border: var(--border-control);
+  border-radius: var(--radius-control);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: var(--lh-code);
+  overflow-wrap: anywhere;
+  resize: vertical;
+}
+
+textarea.code:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* "Сбросить прогресс": red outline, filled red after the first press. */
+button.danger {
+  border-color: var(--margin);
+  color: var(--margin);
+}
+
+button.danger.armed {
+  background: var(--margin);
+  color: var(--card);
+}

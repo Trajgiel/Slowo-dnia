@@ -9,3 +9,4 @@ export {
   type SpeechHost,
 } from './speech'
 export { applyTheme, THEME_COLOR } from './theme'
+export { canShare, copyText, shareText, type ShareHost } from './share'
