@@ -7,7 +7,7 @@
 // - US-12: author and copyright, as in the prototype (author tag; the comment in the page source).
 // Not here: lang="ru" and the /Slowo-dnia/ base of every reference ->
 // tests/skeleton-build.acceptance.test.ts (SD-6); the theme-color value per theme ->
-// e2e/theme-before-paint.spec.ts; the manifest file itself -> SD-18.
+// e2e/theme-before-paint.spec.ts; the manifest file itself -> tests/pwa-build.acceptance.test.ts.
 import { expect, test } from '@playwright/test'
 
 const meta = (name: string): string => `meta[name="${name}"]`
