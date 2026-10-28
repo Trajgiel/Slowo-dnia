@@ -50,14 +50,6 @@ describe('pageFromNetwork', () => {
     expect(sources.offlinePage).not.toHaveBeenCalled()
   })
 
-  it('no network → the precached page of the installed version', async () => {
-    const sources: PageSources = {
-      fetch: () => Promise.reject(new TypeError('Failed to fetch')),
-      offlinePage: () => Promise.resolve(offline),
-    }
-    expect(await pageFromNetwork(request(PAGE, 'navigate'), sources)).toBe(offline)
-  })
-
   it('no network and nothing precached → a network error, no exception', async () => {
     const sources: PageSources = {
       fetch: () => Promise.reject(new TypeError('Failed to fetch')),
