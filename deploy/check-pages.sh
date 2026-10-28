@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 # Check the published GitHub Pages site.
 #
-#   deploy/check-pages.sh hashes [ref]   compare live files with the files in a git ref
-#                                        (default: origin/main; "origin/*" refs are fetched
-#                                        first); exit 1 on any mismatch or missing file
+#   deploy/check-pages.sh hashes [ref]   prototype site (before the React release): compare
+#                                        live files with the files in a git ref (default:
+#                                        origin/main; "origin/*" refs are fetched first)
+#   deploy/check-pages.sh sums <file|->  React site (after a deploy): compare every file
+#                                        listed in sha256sum lines (the "Published files"
+#                                        block of the build job summary in the ci run;
+#                                        other lines are ignored, "-" reads stdin) with
+#                                        the live site
+#   deploy/check-pages.sh dir <path>     same as "sums" for a local build directory
+#                                        (dist/ or the unpacked github-pages artifact)
 #   deploy/check-pages.sh watch [sec]    poll the site every <sec> seconds (default: 5),
 #                                        print a timestamped line whenever the HTTP status
 #                                        changes; stop with Ctrl+C
 #
+# hashes/sums/dir: exit 1 on any mismatch or missing file, 2 on wrong usage.
 # Env: SITE_URL (default https://trajgiel.github.io/Slowo-dnia/), FILES (space-separated
-# list for "hashes", default "index.html sw.js courses/adult.js manifest.webmanifest").
+# list for "hashes", default: the prototype files "index.html sw.js courses/adult.js
+# manifest.webmanifest"; "sums" and "dir" check every file of the build).
 # Every request carries a unique query string so the CDN cache is bypassed.
 set -euo pipefail
 
@@ -17,7 +26,7 @@ SITE_URL="${SITE_URL:-https://trajgiel.github.io/Slowo-dnia/}"
 FILES="${FILES:-index.html sw.js courses/adult.js manifest.webmanifest}"
 
 usage() {
-  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
   exit 2
 }
 
@@ -31,6 +40,82 @@ sha256() {
 
 bust() {
   printf '%s?nocache=%s%s' "$1" "$(date +%s)" "$RANDOM"
+}
+
+# live_sha256 <path relative to SITE_URL>: hash of the live file or "(download failed)".
+live_sha256() {
+  local h
+  if h="$(curl -fsS -H 'Cache-Control: no-cache' "$(bust "$SITE_URL$1")" | sha256)"; then
+    printf '%s' "$h"
+  else
+    printf '(download failed)'
+  fi
+}
+
+# compare_sums: read "<sha256>  [./|*]<path>" lines on stdin, compare each file with the
+# live site; for index.html also the page address itself (SITE_URL). Other lines are skipped.
+compare_sums() {
+  local fail=0 count=0 line hash path live
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%$'\r'}"
+    # Site file names only: letters, digits, "._-" and "/"; no "..".
+    [[ "$line" =~ ^([0-9a-f]{64})\ [\ \*](\./)?([A-Za-z0-9._/-]+)$ ]] || continue
+    hash="${BASH_REMATCH[1]}"
+    path="${BASH_REMATCH[3]}"
+    case "$path" in
+      *..* | /*)
+        echo "Skipped unsafe path: $path" >&2
+        continue
+        ;;
+    esac
+    count=$((count + 1))
+    live="$(live_sha256 "$path")"
+    if [ "$hash" = "$live" ]; then
+      printf 'OK    %s  %s\n' "$hash" "$path"
+    else
+      printf 'DIFF  %s  %s (live: %s)\n' "$hash" "$path" "$live"
+      fail=1
+    fi
+    if [ "$path" = "index.html" ]; then
+      live="$(live_sha256 "")"
+      if [ "$hash" = "$live" ]; then
+        printf 'OK    %s  (page address %s)\n' "$hash" "$SITE_URL"
+      else
+        printf 'DIFF  %s  (page address %s, live: %s)\n' "$hash" "$SITE_URL" "$live"
+        fail=1
+      fi
+    fi
+  done
+  if [ "$count" -eq 0 ]; then
+    echo "No sha256 lines found" >&2
+    return 2
+  fi
+  echo "Checked $count files"
+  return "$fail"
+}
+
+cmd_sums() {
+  local src="${1:-}"
+  if [ -z "$src" ] || { [ "$src" != "-" ] && [ ! -f "$src" ]; }; then
+    usage
+  fi
+  echo "Site: $SITE_URL"
+  if [ "$src" = "-" ]; then
+    compare_sums
+  else
+    compare_sums <"$src"
+  fi
+}
+
+cmd_dir() {
+  local dir="${1:-}"
+  [ -n "$dir" ] && [ -d "$dir" ] || usage
+  echo "Site: $SITE_URL"
+  echo "Build: $dir"
+  # Same "<sha256>  ./<path>" lines as the run summary, computed locally.
+  (cd "$dir" && find . -type f | LC_ALL=C sort | while IFS= read -r f; do
+    printf '%s  %s\n' "$(sha256 <"$f")" "$f"
+  done) | compare_sums
 }
 
 cmd_hashes() {
@@ -54,9 +139,7 @@ cmd_hashes() {
       continue
     fi
     local_hash="$(git show "$ref:$f" | sha256)"
-    if ! live_hash="$(curl -fsS -H 'Cache-Control: no-cache' "$(bust "$SITE_URL$f")" | sha256)"; then
-      live_hash="(download failed)"
-    fi
+    live_hash="$(live_sha256 "$f")"
     if [ "$local_hash" = "$live_hash" ]; then
       printf 'OK    %s  %s\n' "$local_hash" "$f"
     else
@@ -84,6 +167,8 @@ cmd_watch() {
 
 case "${1:-}" in
   hashes) shift; cmd_hashes "$@" ;;
+  sums) shift; cmd_sums "$@" ;;
+  dir) shift; cmd_dir "$@" ;;
   watch) shift; cmd_watch "$@" ;;
   *) usage ;;
 esac
