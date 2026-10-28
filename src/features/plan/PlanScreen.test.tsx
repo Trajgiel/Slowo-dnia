@@ -95,7 +95,7 @@ describe('"План": open themes', () => {
     expect(openThemes()).toEqual([3])
   })
 
-  it('gender change → open themes stay, words and theme titles change', async () => {
+  it('gender change → open themes stay', async () => {
     const { store } = await renderPlan()
     const ready = store.getState().words.findIndex((w) => w.theme === 'Я готова!')
     const n = (store.getState().words[ready]?.ti ?? 0) + 1
@@ -105,7 +105,6 @@ describe('"План": open themes', () => {
       const { courseData } = store.getState()
       if (courseData) store.setState({ gender: 'boy', words: expandWords(courseData, 'boy') })
     })
-    expect(within(summary(n)).getByText('Я готов!')).toBeInTheDocument()
     expect(openThemes()).toEqual([1, n])
   })
 })

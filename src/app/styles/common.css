@@ -121,6 +121,6 @@ button.ghost {
 }
 
 .help ol {
-  padding-left: 1.4em;
+  padding: 0 var(--space-6) var(--space-8) 1.4em;
   list-style: decimal;
 }

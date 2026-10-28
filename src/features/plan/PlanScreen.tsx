@@ -64,7 +64,7 @@ const Theme = memo(function Theme({ range, words, cur, onOpenWord }: ThemeProps)
             <b lang="pl">{word.pl}</b>
             <span>{word.ru}</span>
           </span>
-          <span className="ck">{marks[i - range.from] === '1' ? '✓' : ''}</span>
+          <span className="ck">{marks[i - range.from] === '1' ? t('marked') : ''}</span>
         </button>
       </li>,
     )
