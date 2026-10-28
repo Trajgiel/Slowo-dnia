@@ -1,0 +1,24 @@
+/* Segmented switch: two buttons on a soft plate, the chosen one filled (design/system/README.md). */
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--soft);
+}
+
+.seg button {
+  min-height: var(--hit-42);
+  border: 0;
+  border-radius: var(--radius-seg);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-seg);
+}
+
+.seg button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--card);
+  box-shadow: var(--shadow-seg);
+}

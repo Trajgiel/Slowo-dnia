@@ -5,11 +5,17 @@
 import { createStore, type StoreApi } from 'zustand/vanilla'
 import { CourseLoadError, type CourseLoadErrorKind, type LoadCourse } from '../data'
 import {
+  answerDeck,
   DEFAULT_GENDER,
   DEFAULT_QUIZ_DIR,
   DEFAULT_QUIZ_MODE,
   expandWords,
+  deckState,
   INITIAL_FREE_QUIZ,
+  markWeak,
+  needsNextFree,
+  newDeck,
+  nextFree,
   nextIdx,
   praiseFor,
   prepareDeck,
@@ -74,8 +80,9 @@ export type Toast = ToastMessage & {
 export interface Session {
   /** Word open on "Слово". */
   readonly cur: number
-  /** The answer of the current deck card is shown. */
+  /** The answer of the quiz card is shown (deck and "Без конца"). */
   readonly answerShown: boolean
+  /** "Без конца": current word (`idx`, `null` — none), its direction and recent words. */
   readonly free: FreeQuizState
 }
 
@@ -95,10 +102,31 @@ export interface AppActions {
    * screen's job (`retryNeedsReload`).
    */
   retryCourse: () => Promise<void>
-  /** A tab was opened (also by "Назад" / "Вперёд"): writes `tab`; the quiz reconciles the deck. */
+  /** A tab was opened (also by "Назад" / "Вперёд"): writes `tab`; the quiz is reconciled (`syncQuiz`). */
   openTab: (tab: TabName) => void
-  /** Deck reconciliation (prototype `renderDeck` side effect); see `architecture/react-port/storage.md`. */
-  syncDeck: () => void
+  /**
+   * What the quiz shows is brought up to date, as the prototype's `renderQuiz` does on every draw:
+   * in "Колода" the deck is reconciled (`architecture/react-port/storage.md` → "«Сверка колоды»"); in
+   * "Без конца" a new question is picked if there is none or its word is no longer learned. One pick
+   * per call: when no word can be picked (all weights not above zero) the question stays empty, no loop.
+   */
+  syncQuiz: () => void
+  /** Quiz mode switch: writes `qmode`, hides the answer, reconciles the quiz. */
+  setQuizMode: (mode: QuizMode) => void
+  /** Deck direction switch: writes `qdir`, hides the answer, reconciles the quiz. */
+  setQuizDir: (dir: QuizDir) => void
+  /** "Показать ответ". */
+  showAnswer: () => void
+  /**
+   * "Ответили ✓" (`recalled`) / "Не вспомнили". Deck: the answer and the weak counter are saved at once
+   * (`done`, `weak`, `days`, then `deck_<dir>`; a solved deck moves `last` to `prev` and writes the new
+   * `last`). "Без конца": only the weak counter (`done`, `weak`, `days`), then the next question.
+   */
+  answerQuiz: (recalled: boolean) => void
+  /** "Начать колоду заново" (confirmed) and "Решить заново": a new deck of all learned words is written. */
+  restartDeck: () => void
+  /** "Другое слово": the next "Без конца" question, nothing is written. */
+  skipFree: () => void
   /** Opens word `index` on "Слово" (kept within the course). */
   showWord: (index: number) => void
   /**
@@ -199,7 +227,36 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
         },
         session: newSession(nextIdx(stored.done, words.length)),
       })
-      get().actions.syncDeck()
+      get().actions.syncQuiz()
+    }
+
+    /** Deck reconciliation (prototype `renderDeck` side effect): only in "Колода" with learned words. */
+    function syncDeck(): void {
+      const { course, quizMode, quizDir, done, decks } = get()
+      if (course === null || quizMode !== 'deck' || done.size === 0) return
+      const prepared = prepareDeck(storage.readDeck(course, quizDir), done, rng)
+      if (prepared.changed) storage.writeDeck(course, quizDir, prepared.deck)
+      set({ decks: { ...decks, [quizDir]: prepared.deck } })
+    }
+
+    /** Next "Без конца" question; the answer is hidden (prototype `nextFree`). */
+    function pickNextFree(): void {
+      const { done, weak, session } = get()
+      set({
+        session: { ...session, answerShown: false, free: nextFree(session.free, done, weak, rng) },
+      })
+    }
+
+    /** "Без конца" on draw (prototype `renderFree`): a question is picked once if there is none. */
+    function syncFree(): void {
+      const { course, quizMode, done, session } = get()
+      if (course === null || quizMode !== 'free' || done.size === 0) return
+      if (needsNextFree(session.free, done)) pickNextFree()
+    }
+
+    const hideAnswer = (): void => {
+      const { session } = get()
+      if (session.answerShown) set({ session: { ...session, answerShown: false } })
     }
 
     const actions: AppActions = {
@@ -259,15 +316,83 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
 
       openTab(tab) {
         storage.writeTab(tab)
-        if (tab === 'quiz') get().actions.syncDeck()
+        if (tab === 'quiz') get().actions.syncQuiz()
       },
 
-      syncDeck() {
-        const { course, quizMode, quizDir, done, decks } = get()
-        if (course === null || quizMode !== 'deck' || done.size === 0) return
-        const prepared = prepareDeck(storage.readDeck(course, quizDir), done, rng)
-        if (prepared.changed) storage.writeDeck(course, quizDir, prepared.deck)
-        set({ decks: { ...decks, [quizDir]: prepared.deck } })
+      syncQuiz() {
+        syncDeck()
+        syncFree()
+      },
+
+      setQuizMode(mode) {
+        set({ quizMode: mode })
+        storage.writeQuizMode(mode)
+        hideAnswer()
+        get().actions.syncQuiz()
+      },
+
+      setQuizDir(dir) {
+        set({ quizDir: dir })
+        storage.writeQuizDir(dir)
+        hideAnswer()
+        get().actions.syncQuiz()
+      },
+
+      showAnswer() {
+        const { session } = get()
+        if (!session.answerShown) set({ session: { ...session, answerShown: true } })
+      },
+
+      answerQuiz(recalled) {
+        const { course, quizMode, quizDir, done, weak, days, decks, deckResults, session } = get()
+        if (course === null) return
+        if (quizMode === 'free') {
+          if (session.free.idx === null) return
+          const nextWeak = markWeak(weak, session.free.idx, recalled)
+          set({ weak: nextWeak })
+          storage.writeProgress(course, { done, weak: nextWeak, days })
+          pickNextFree()
+          return
+        }
+        const deck = decks[quizDir]
+        if (!deck) return
+        const word = deckState(deck, done).next
+        const results = deckResults[quizDir]
+        const answer = answerDeck(deck, done, recalled, results.last, deps.now())
+        if (!answer.answered || word === undefined) return
+        const nextWeak = markWeak(weak, word, recalled)
+        storage.writeProgress(course, { done, weak: nextWeak, days })
+        storage.writeDeck(course, quizDir, answer.deck)
+        const { finished } = answer
+        if (finished) {
+          if (finished.prev) storage.writePrevResult(course, quizDir, finished.prev)
+          storage.writeLastResult(course, quizDir, finished.last)
+        }
+        set({
+          weak: nextWeak,
+          decks: { ...decks, [quizDir]: answer.deck },
+          deckResults: finished
+            ? {
+                ...deckResults,
+                [quizDir]: { last: finished.last, prev: finished.prev ?? results.prev },
+              }
+            : deckResults,
+          session: { ...session, answerShown: false },
+        })
+      },
+
+      restartDeck() {
+        const { course, quizDir, done, decks, session } = get()
+        if (course === null) return
+        const deck = newDeck(done, rng)
+        storage.writeDeck(course, quizDir, deck)
+        set({ decks: { ...decks, [quizDir]: deck }, session: { ...session, answerShown: false } })
+        get().actions.syncQuiz()
+      },
+
+      skipFree() {
+        if (get().course === null) return
+        pickNextFree()
       },
 
       showWord(index) {
