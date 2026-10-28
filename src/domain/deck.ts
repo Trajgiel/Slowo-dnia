@@ -32,7 +32,8 @@ export interface DeckResult {
   readonly right: number
   readonly wrong: number
   readonly total: number
-  readonly date: DayKey
+  /** Absent in a result the prototype stored without a date: shown without it. */
+  readonly date?: DayKey
 }
 
 export interface DeckState {

@@ -14,14 +14,20 @@ export {
 } from './appStore'
 export { AppStoreProvider } from './AppStoreProvider'
 export {
+  useAnswerShown,
   useAppActions,
   useClock,
   useCourse,
   useCourseLoad,
   useCurrentWord,
   useDays,
+  useDeck,
+  useDeckResults,
   useDone,
+  useFreeQuiz,
   useGate,
+  useQuizDir,
+  useQuizMode,
   useToast,
   useWords,
 } from './hooks'

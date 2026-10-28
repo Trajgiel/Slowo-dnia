@@ -79,12 +79,13 @@ export function parseDeck(value: unknown): Deck | null {
   }
 }
 
-/** `{ right, wrong, total, date }` with numbers and a date string; otherwise `null`. */
+/** `{ right, wrong, total, date }` with numbers and a date string (the date may be absent); otherwise `null`. */
 export function parseDeckResult(value: unknown): DeckResult | null {
   if (!isRecord(value)) return null
   const { right, wrong, total, date } = value
   if (typeof right !== 'number' || typeof wrong !== 'number' || typeof total !== 'number')
     return null
+  if (date === undefined) return encodeDeckResult({ right, wrong, total })
   if (typeof date !== 'string') return null
   return encodeDeckResult({ right, wrong, total, date })
 }
@@ -106,5 +107,6 @@ export function encodeDeck(deck: Deck): { order: number[]; ans: Record<string, b
 
 /** Field order `right, wrong, total, date`, as the prototype writes it. */
 export function encodeDeckResult(result: DeckResult): DeckResult {
-  return { right: result.right, wrong: result.wrong, total: result.total, date: result.date }
+  const { right, wrong, total, date } = result
+  return date === undefined ? { right, wrong, total } : { right, wrong, total, date }
 }
