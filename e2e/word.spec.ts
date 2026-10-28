@@ -5,10 +5,10 @@
 // - "Вернуться к новому слову" hidden keeps its place: nothing below it moves when it appears;
 // - width 320: the theme dots up to "1000" fit, each number inside its dot, no horizontal scroll;
 // - "Послушать" on the real Web Speech API of Chromium: a real utterance, pl-PL, rate 0.8, the current
-//   speech is stopped first; with no Polish voice the message is shown and another word hides it.
+//   speech is stopped first.
 // Not here (developer, jsdom): badge states, arrows on the edges, unmarking, the 400 days, percent,
 // dot classes and presses, streak wording, plural forms and the local day, praise toasts and 3.5 s, text preparation
-// for speech, the "unsupported" message -> src/features/word/WordScreen.test.tsx,
+// for speech, the messages "no Polish voice" (shown, hidden by another word) and "unsupported" -> src/features/word/WordScreen.test.tsx,
 // src/state/appStore.test.ts, src/platform/speech.test.ts, src/shared/ui/Toast.test.tsx; the course
 // chip -> src/app/TabsLayout.test.tsx; the local day in other time zones ->
 // src/domain/prototype-parity.acceptance.test.ts. The sound itself on devices -> owner's check on phones.
@@ -129,16 +129,14 @@ test.describe('width 320', () => {
   })
 })
 
-test('"Послушать" on the real speech API: pl-PL at 0.8 after stopping the current speech; no Polish voice → message until another word', async ({
+test('"Послушать" on the real speech API: pl-PL at 0.8 after stopping the current speech', async ({
   page,
 }) => {
-  // The real Chromium speechSynthesis, with the voice list emptied and speak() recorded instead of
-  // playing sound.
+  // The real Chromium speechSynthesis, with speak() recorded instead of playing sound.
   await page.addInitScript(() => {
     const calls: unknown[] = []
     Object.assign(window, { __speech: calls })
     const synth = window.speechSynthesis
-    synth.getVoices = () => []
     synth.cancel = () => {
       calls.push('cancel')
     }
@@ -156,17 +154,11 @@ test('"Послушать" on the real speech API: pl-PL at 0.8 after stopping t
   await page.goto('./#/word')
   const speechCalls = () =>
     page.evaluate(() => (window as unknown as { __speech: unknown[] }).__speech)
-  const message = page.locator('section > .msg')
 
   await page.getByRole('button', { name: common.speak }).click()
-  await expect(message).toHaveText(common.speech.noVoice)
   expect(await speechCalls()).toEqual([
     'cancel',
     { real: true, text: 'Cześć!', lang: 'pl-PL', rate: 0.8 },
   ])
   await expect(card(page).locator('[lang="pl"]')).toHaveText('Cześć!')
-
-  await page.getByRole('button', { name: word.next }).click()
-  await expect(card(page)).toContainText(fill(word.meta.position, { n: 2, total: 500 }))
-  await expect(message).toHaveCount(0)
 })
