@@ -336,6 +336,14 @@ describe('"Слово": open a word', () => {
     expect(store.getState().session.cur).toBe(499)
     expect(ls.snapshot()).toEqual({ course: '"kids"' })
   })
+
+  it('ignores NaN', async () => {
+    const { store, actions } = setup({ course: '"kids"' })
+    await actions.start()
+    actions.showWord(7)
+    actions.showWord(Number.NaN)
+    expect(store.getState().session.cur).toBe(7)
+  })
 })
 
 describe('"Слово": "Выучили"', () => {
