@@ -41,6 +41,11 @@ const LAYER_RULES = {
   data: { forbidden: ['app', 'features', 'shared', 'state', 'storage'] },
   platform: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'data'] },
   i18n: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'data', 'platform'] },
+  // The service worker (src/pwa/sw.ts) runs apart from the page: no app code, no React.
+  pwa: {
+    forbidden: LAYERS,
+    packages: ['react', 'react-dom', 'react-i18next', 'i18next', 'zustand'],
+  },
   domain: {
     forbidden: LAYERS.filter((layer) => layer !== 'domain'),
     packages: ['react', 'react-dom', 'react-i18next', 'i18next', 'zustand'],
