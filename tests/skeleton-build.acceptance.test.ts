@@ -30,6 +30,10 @@ const NON_REQUEST_HOSTS = new Map([
     "the author's link: copyright comment in index.html, later links on the How screen; the app makes no request to it",
   ],
   [
+    'bit.ly',
+    'link in the text of a Workbox console warning in sw.js (precaching without revisions); never fetched',
+  ],
+  [
     't.me',
     'the Telegram contact link on the Settings screen (src/features/settings/contacts.ts); a plain link opened by the user, the app makes no request to it',
   ],
