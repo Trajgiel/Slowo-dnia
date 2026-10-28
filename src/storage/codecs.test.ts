@@ -127,10 +127,23 @@ describe('parseDeckResult', () => {
     ['null', null],
     ['missing', undefined],
     ['string count', { right: '4', wrong: 1, total: 5, date: '2026-10-26' }],
-    ['no date', { right: 4, wrong: 1, total: 5 }],
+    ['non-string date', { right: 4, wrong: 1, total: 5, date: 7 }],
     ['array', [4, 1, 5]],
   ])('%s → null', (_, value) => {
     expect(parseDeckResult(value)).toBeNull()
+  })
+})
+
+describe('parseDeckResult: result without a date', () => {
+  it('is read as is, without a date (the prototype shows it without a date)', () => {
+    expect(parseDeckResult({ right: 3, wrong: 1, total: 4 })).toEqual({
+      right: 3,
+      wrong: 1,
+      total: 4,
+    })
+    expect(JSON.stringify(encodeDeckResult({ right: 3, wrong: 1, total: 4 }))).toBe(
+      '{"right":3,"wrong":1,"total":4}',
+    )
   })
 })
 

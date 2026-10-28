@@ -77,6 +77,24 @@ describe('quiz mode and direction', () => {
   })
 })
 
+describe('"Колода": result without a date', () => {
+  it('a new result moves the old one without a date to prev as is', async () => {
+    const lastBefore = '{"right":1,"wrong":0,"total":1}'
+    const { ls, store, actions } = setup({
+      course: '"kids"',
+      done: '[3]',
+      deck_ru: '{"order":[3],"ans":{}}',
+      last_ru: lastBefore,
+    })
+    await actions.start()
+    expect(store.getState().deckResults.ru.last).toEqual({ right: 1, wrong: 0, total: 1 })
+    actions.showAnswer()
+    actions.answerQuiz(true)
+    expect(ls.snapshot().prev_ru).toBe(lastBefore)
+    expect(store.getState().deckResults.ru.prev).toEqual({ right: 1, wrong: 0, total: 1 })
+  })
+})
+
 describe('"Колода": answers', () => {
   it('each answer saves done, weak, days and the deck; the last one moves last to prev', async () => {
     const lastBefore = '{"right":1,"wrong":0,"total":1,"date":"2026-10-20"}'
