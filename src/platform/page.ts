@@ -13,3 +13,8 @@ export function disableScrollRestoration(win: Window = window): void {
 export function scrollToTop(win: Window = window): void {
   win.scrollTo(0, 0)
 }
+
+/** "План": the current word is scrolled to the middle of the screen, not to the top. */
+export function scrollIntoCenter(element: Element): void {
+  element.scrollIntoView({ block: 'center' })
+}

@@ -1,5 +1,5 @@
 // platform layer (architecture/react-port/modules.md in the workspace).
-export { disableScrollRestoration, reloadPage, scrollToTop } from './page'
+export { disableScrollRestoration, reloadPage, scrollIntoCenter, scrollToTop } from './page'
 export {
   primeVoices,
   speak,

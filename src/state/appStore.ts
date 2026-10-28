@@ -84,6 +84,11 @@ export interface Session {
   readonly answerShown: boolean
   /** "Без конца": current word (`idx`, `null` — none), its direction and recent words. */
   readonly free: FreeQuizState
+  /**
+   * Themes open on "План" (theme indices). Reset to the current word's theme whenever the session is
+   * (start, course change, and later restore and reset); tab changes, marks and gender keep it.
+   */
+  readonly openThemes: ReadonlySet<number>
 }
 
 export interface AppActions {
@@ -127,6 +132,8 @@ export interface AppActions {
   restartDeck: () => void
   /** "Другое слово": the next "Без конца" question, nothing is written. */
   skipFree: () => void
+  /** A theme on "План" was opened or closed; nothing is written. */
+  setThemeOpen: (theme: number, open: boolean) => void
   /** Opens word `index` on "Слово" (kept within the course). */
   showWord: (index: number) => void
   /**
@@ -179,7 +186,16 @@ export type AppStore = StoreApi<AppState>
 
 const NO_RESULTS: DeckResults = { last: null, prev: null }
 
-const newSession = (cur: number): Session => ({ cur, answerShown: false, free: INITIAL_FREE_QUIZ })
+/** A new session opens word `cur`; on "План" only the theme of that word is open. */
+const newSession = (cur: number, words: readonly Word[] = []): Session => {
+  const theme = words[cur]?.ti
+  return {
+    cur,
+    answerShown: false,
+    free: INITIAL_FREE_QUIZ,
+    openThemes: new Set(theme === undefined ? [] : [theme]),
+  }
+}
 
 type LoadResult =
   | { readonly ok: true; readonly data: CourseData }
@@ -225,7 +241,7 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
           ru: storage.readDeckResults(course, 'ru'),
           pl: storage.readDeckResults(course, 'pl'),
         },
-        session: newSession(nextIdx(stored.done, words.length)),
+        session: newSession(nextIdx(stored.done, words.length), words),
       })
       get().actions.syncQuiz()
     }
@@ -393,6 +409,15 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
       skipFree() {
         if (get().course === null) return
         pickNextFree()
+      },
+
+      setThemeOpen(theme, open) {
+        const { session } = get()
+        if (session.openThemes.has(theme) === open) return
+        const openThemes = new Set(session.openThemes)
+        if (open) openThemes.add(theme)
+        else openThemes.delete(theme)
+        set({ session: { ...session, openThemes } })
       },
 
       showWord(index) {

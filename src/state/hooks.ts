@@ -7,6 +7,7 @@ import type {
   Deck,
   Done,
   FreeQuizState,
+  Gender,
   QuizDir,
   QuizMode,
   Word,
@@ -33,6 +34,21 @@ export const useWords = (): readonly Word[] => useAppStore((s) => s.words)
 export const useDone = (): Done => useAppStore((s) => s.done)
 /** Local dates the streak counts. */
 export const useDays = (): readonly DayKey[] => useAppStore((s) => s.days)
+/** Gender of the open course. */
+export const useGender = (): Gender => useAppStore((s) => s.gender)
+/**
+ * Learned marks of words `from`…`to - 1` as a string of `1` / `0`: a value, so a theme on "План"
+ * draws again only when one of its own marks changes.
+ */
+export const useLearnedMarks = (from: number, to: number): string =>
+  useAppStore((s) => {
+    let marks = ''
+    for (let i = from; i < to; i++) marks += s.done.has(i) ? '1' : '0'
+    return marks
+  })
+/** The theme is open on "План". */
+export const useThemeOpen = (theme: number): boolean =>
+  useAppStore((s) => s.session.openThemes.has(theme))
 /** The word open on "Слово". */
 export const useCurrentWord = (): number => useAppStore((s) => s.session.cur)
 /** Quiz mode and deck direction (settings). */
