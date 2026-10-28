@@ -26,8 +26,11 @@ export {
   useDone,
   useFreeQuiz,
   useGate,
+  useGender,
+  useLearnedMarks,
   useQuizDir,
   useQuizMode,
+  useThemeOpen,
   useToast,
   useWords,
 } from './hooks'

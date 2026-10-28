@@ -1,0 +1,107 @@
+/* "План" (materials/project/APP_SPEC.md → "6.3"; tokens and one-off numbers — design/system/README.md
+   in the workspace: the summary and row grids are exceptions of "План"). */
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.plan details {
+  background: var(--card);
+  border: var(--border);
+  border-radius: var(--radius-control);
+}
+
+.plan summary {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-10);
+  align-items: center;
+  min-height: var(--hit-48);
+  padding: var(--space-12) var(--space-14);
+  list-style: none;
+  cursor: pointer;
+}
+
+.plan summary::-webkit-details-marker {
+  display: none;
+}
+
+.plan summary .wk {
+  color: var(--margin);
+  font-size: var(--fs-chip);
+  font-weight: 800;
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.plan summary .th {
+  min-width: 0;
+  font-weight: 800;
+}
+
+.plan summary .cnt {
+  color: var(--muted);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan summary .cnt.full {
+  color: var(--done);
+  font-weight: 800;
+}
+
+.plan ol {
+  margin: 0;
+  padding: 0 var(--space-6) var(--space-8);
+  list-style: none;
+}
+
+.plan button.item {
+  display: grid;
+  grid-template-columns: 2.4em 1fr 1.4em;
+  gap: var(--space-8);
+  align-items: baseline;
+  width: 100%;
+  min-height: var(--hit-48);
+  padding: var(--space-10) var(--space-8);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-weight: 400;
+  text-align: left;
+}
+
+.plan button.item.cur {
+  background: var(--soft);
+  box-shadow: var(--marker);
+}
+
+.plan .n {
+  color: var(--muted);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan .w {
+  min-width: 0;
+}
+
+.plan .w b {
+  display: block;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.plan .w span {
+  color: var(--muted);
+  font-size: var(--fs-seg);
+}
+
+.plan .ck {
+  color: var(--done);
+  font-weight: 900;
+  text-align: center;
+}

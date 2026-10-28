@@ -1,0 +1,15 @@
+/* "Как" (materials/project/APP_SPEC.md → "6.4"; tokens — design/system/README.md in the workspace):
+   the sounds table, letter and its explanation in two columns. */
+
+.sounds {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-6) var(--space-14);
+  align-items: baseline;
+}
+
+.sounds b {
+  color: var(--accent);
+  font-size: var(--fs-sound);
+  font-weight: 900;
+}

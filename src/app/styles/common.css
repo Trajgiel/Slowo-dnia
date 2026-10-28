@@ -90,3 +90,37 @@ button.ghost {
   font-size: var(--fs-stat-label);
   color: var(--muted);
 }
+
+/* A card of sections with a title each: "Как" and "Настройки". Lists indent by the one-off
+   1.15em (numbered 1.4em) of the prototype (design/system/README.md → "Одноразовые числа"). */
+.help {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  padding: var(--space-18);
+}
+
+.help h3 {
+  margin: 0;
+  font-size: var(--fs-h3);
+  font-weight: 900;
+}
+
+.help p,
+.help ul,
+.help ol {
+  margin: 0;
+}
+
+.help ul,
+.help ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-left: 1.15em;
+}
+
+.help ol {
+  padding-left: 1.4em;
+  list-style: decimal;
+}

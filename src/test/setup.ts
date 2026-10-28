@@ -8,4 +8,7 @@ afterEach(() => {
 })
 
 // jsdom does not implement scrolling and logs "Not implemented" on every call.
-if (typeof window !== 'undefined') window.scrollTo = vi.fn()
+if (typeof window !== 'undefined') {
+  window.scrollTo = vi.fn()
+  Element.prototype.scrollIntoView = vi.fn()
+}
