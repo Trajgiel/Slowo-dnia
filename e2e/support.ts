@@ -1,5 +1,5 @@
 // Shared helpers of the end-to-end tests (qa).
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 /** Seeds raw `localStorage` once per test: the init script runs on every navigation of the page. */
 export async function seedStorage(page: Page, items: Record<string, string>): Promise<void> {
@@ -33,3 +33,14 @@ export function readStorage(page: Page): Promise<Record<string, string>> {
 
 /** The adult course file (src/data/loadCourse.ts: a hashed JSON asset). */
 export const ADULT_COURSE_URL = '**/assets/adult-*.json'
+
+/** A dictionary string with its `{{name}}` placeholders filled in. */
+export const fill = (text: string, values: Record<string, string | number>) =>
+  text.replace(/\{{2}(\w+)\}{2}/g, (_, key: string) => String(values[key]))
+
+/** The rendered box of an element; fails if it is not rendered. */
+export async function box(element: Locator) {
+  const b = await element.boundingBox()
+  if (!b) throw new Error('element is not rendered')
+  return b
+}
