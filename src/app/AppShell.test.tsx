@@ -51,7 +51,7 @@ describe('course gate', () => {
     expect(status).toHaveAttribute('aria-live', 'polite')
     expect(status).toBeEmptyDOMElement()
     act(() => {
-      store.getState().actions.showToast('courseLoadFailed')
+      store.getState().actions.showToast({ id: 'courseLoadFailed' })
     })
     expect(status).toHaveTextContent(common.toast.courseLoadFailed)
   })

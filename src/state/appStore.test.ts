@@ -4,6 +4,7 @@
 // (architecture/react-port/storage.md → "«Старый пользователь»", "Когда что пишется";
 // architecture/react-port/course-data.md → "Ошибка загрузки (П-6)").
 import { describe, expect, it, vi } from 'vitest'
+import { dayKey, type CourseData } from '../domain'
 import { createRepo } from '../storage'
 import { FakeStorage } from '../test/fakeStorage'
 import { fakeLoader, type AdultOutcome } from '../test/fakeLoader'
@@ -320,5 +321,124 @@ describe('tabs', () => {
       actions.openTab('quiz')
       expect(ls.snapshot()).toEqual({ ...items, tab: '"quiz"' })
     }
+  })
+})
+
+describe('"Слово": open a word', () => {
+  it('opens the word and keeps it within the course', async () => {
+    const { ls, store, actions } = setup({ course: '"kids"' })
+    await actions.start()
+    actions.showWord(42)
+    expect(store.getState().session.cur).toBe(42)
+    actions.showWord(-1)
+    expect(store.getState().session.cur).toBe(0)
+    actions.showWord(10_000)
+    expect(store.getState().session.cur).toBe(499)
+    expect(ls.snapshot()).toEqual({ course: '"kids"' })
+  })
+})
+
+describe('"Слово": "Выучили"', () => {
+  it('marks: done, weak and days written as save(); today added once; the word stays', async () => {
+    const { ls, store, actions } = setup({
+      course: '"kids"',
+      done: '[5]',
+      weak: '{"5":2}',
+      days: '["2026-10-24"]',
+    })
+    await actions.start()
+    actions.showWord(3)
+    actions.toggleLearned()
+    expect(store.getState().session.cur).toBe(3)
+    expect(ls.snapshot()).toMatchObject({
+      done: '[3,5]',
+      weak: '{"5":2}',
+      days: '["2026-10-24","2026-10-26"]',
+    })
+    actions.showWord(7)
+    actions.toggleLearned()
+    expect(ls.snapshot().days).toBe('["2026-10-24","2026-10-26"]')
+    expect(ls.snapshot().done).toBe('[3,5,7]')
+  })
+
+  it('unmarks: the word leaves done, the date stays in days', async () => {
+    const { ls, store, actions } = setup({
+      course: '"adult"',
+      'adult:done': '[0,1]',
+      'adult:days': '["2026-10-26"]',
+    })
+    await actions.start()
+    actions.showWord(1)
+    actions.toggleLearned()
+    expect([...store.getState().done]).toEqual([0])
+    expect(ls.snapshot()).toMatchObject({
+      'adult:done': '[0]',
+      'adult:weak': '{}',
+      'adult:days': '["2026-10-26"]',
+    })
+    expect(store.getState().toast).toBeNull()
+  })
+
+  it('keeps the last 400 days', async () => {
+    const old = Array.from({ length: 400 }, (_, i) => dayKey(new Date(2024, 0, 1 + i)))
+    const { ls, actions } = setup({ course: '"kids"', days: JSON.stringify(old) })
+    await actions.start()
+    actions.toggleLearned()
+    const days = JSON.parse(ls.snapshot().days ?? '[]') as string[]
+    expect(days).toHaveLength(400)
+    expect(days.at(-1)).toBe('2026-10-26')
+    expect(days[0]).toBe(old[1])
+  })
+})
+
+describe('"Слово": praise', () => {
+  const THEMES: CourseData = {
+    id: 'adult',
+    themes: [
+      [
+        'Первая',
+        [
+          ['a', 'а', 'а'],
+          ['b', 'б', 'б'],
+        ],
+      ],
+      ['Вторая', [['c', 'в', 'в']]],
+    ],
+  }
+  function praiseSetup(items: Record<string, string>) {
+    const ls = new FakeStorage({ course: '"adult"', ...items })
+    const store = createAppStore({
+      storage: createRepo(() => ls),
+      loadCourse: () => Promise.resolve(THEMES),
+      now: () => new Date(2026, 9, 26, 12),
+      rng: seqRng(0),
+    })
+    return { store, actions: store.getState().actions }
+  }
+
+  it('the last word of a theme → theme praise', async () => {
+    const { store, actions } = praiseSetup({ 'adult:done': '[0]' })
+    await actions.start()
+    actions.showWord(1)
+    actions.toggleLearned()
+    expect(store.getState().toast).toEqual({ id: 'praiseTheme', theme: 'Первая', seq: 1 })
+  })
+
+  it('a word that leaves the theme unfinished → no toast', async () => {
+    const { store, actions } = praiseSetup({})
+    await actions.start()
+    actions.toggleLearned()
+    expect(store.getState().toast).toBeNull()
+  })
+
+  it('the last word of the course → only "all learned", a new toast each time', async () => {
+    const { store, actions } = praiseSetup({ 'adult:done': '[0,1]' })
+    await actions.start()
+    actions.showWord(2)
+    actions.toggleLearned()
+    expect(store.getState().toast).toEqual({ id: 'praiseAll', total: 3, seq: 1 })
+    actions.toggleLearned()
+    actions.toggleLearned()
+    expect(store.getState().toast).toEqual({ id: 'praiseAll', total: 3, seq: 2 })
   })
 })
