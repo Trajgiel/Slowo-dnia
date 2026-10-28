@@ -20,7 +20,7 @@
 // storage formats read by the app -> unit tests of src/storage and src/state.
 import { expect, test, type Page, type Request } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
-import { createReadStream, statSync } from 'node:fs'
+import { createReadStream, readFileSync, statSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
@@ -173,10 +173,19 @@ async function expectReactTab(page: Page, name: TabName): Promise<void> {
   await expect(page.locator('#v-word')).toHaveCount(0)
 }
 
+/** Polish words and phrases of the adult course: [theme, [[pl, ru, transcription], ...]][]. */
+const adultWords: string[] = (
+  JSON.parse(readFileSync(join(ROOT, 'src/data/adult.json'), 'utf8')) as [
+    string,
+    [string, ...string[]][],
+  ][]
+).flatMap(([, words]) => words.map((w) => w[0]))
+
 let site: Site | undefined
 test.afterEach(async () => {
-  await new Promise((done) => site?.server.close(done))
+  const current = site
   site = undefined
+  if (current) await new Promise((done) => current.server.close(done))
 })
 
 test('the installed prototype with progress moves to the React build on the first open', async ({
@@ -292,9 +301,13 @@ test('the installed prototype with progress moves to the React build on the firs
   await expect(offline.getByRole('button', { name: common.courseChip.label })).toHaveText(
     new RegExp(common.course.adult),
   )
-  await expect(offline.getByText(common.toast.courseLoadFailed)).toHaveCount(0)
+  // The card shows a word of the adult course (the file comes from the cache, not from the network).
+  const shown = (await offline.locator('p.pl[lang="pl"]').first().textContent()) ?? ''
+  expect(adultWords).toContain(shown.trim())
   // The whole build is there: fonts included (the word tab uses both families).
   await offline.evaluate(() => document.fonts.ready)
   expect(failed.map((request) => request.url())).toEqual([])
   expect([...errors, ...offlineErrors]).toEqual([])
+  // v6 writes to its cache outside `waitUntil`: a late write could recreate `slowo-dnia-v6`.
+  expect(await cacheNames(offline)).toEqual([expect.stringMatching(/^workbox-precache-v2-/)])
 })
