@@ -1,9 +1,9 @@
 // "Настройки" screen: cards in the prototype's order, pressed state of course, gender and theme,
-// gender texts by course, course change (stays on the tab; a failed load changes nothing), install
-// steps, contact links and the copyright (analyst/features/react-port/us-6-settings.md).
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+// gender texts by course, course change (stays on the tab), install steps, contact links and the
+// copyright (analyst/features/react-port/us-6-settings.md). A failed load from this tab ->
+// e2e/settings.spec.ts (qa).
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import common from '../../i18n/locales/ru/common.json'
 import settings from '../../i18n/locales/ru/settings.json'
 import type { AdultOutcome } from '../../test/fakeLoader'
 import { renderApp } from '../../test/renderApp'
@@ -125,24 +125,6 @@ describe('"Настройки"', () => {
     expect(screen.getByText(settings.kid.hint.adult)).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/settings')
     expect(ls.snapshot()).toMatchObject({ course: '"adult"' })
-  })
-
-  it('adult course fails → toast, the kids course stays pressed', async () => {
-    const { ls } = await renderSettings({}, ['network'])
-    const before = ls.snapshot()
-    await act(async () => {
-      fireEvent.click(
-        group(settings.course.label).getByRole('button', { name: settings.course.adult }),
-      )
-      await Promise.resolve()
-    })
-    expect(await screen.findByText(common.toast.courseLoadFailed)).toBeInTheDocument()
-    expect(pressed(settings.course.label)).toEqual([
-      [settings.course.kids, 'true'],
-      [settings.course.adult, 'false'],
-    ])
-    expect(screen.getByText(settings.kid.hint.kids)).toBeInTheDocument()
-    expect(ls.snapshot()).toEqual(before)
   })
 
   it('install: lead, numbered steps for iPhone and Android with bold browsers, the note', async () => {
