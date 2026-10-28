@@ -24,26 +24,27 @@ const LAYERS = [
   'platform',
   'i18n',
   'domain',
+  'pwa',
 ]
 
 // `storageIndexOnly`: the layer may use src/storage only through its index (the repo); key names and raw
 // localStorage access stay inside the folder (architecture/react-port/storage.md, "Устройство модуля").
 /** @type {Record<string, { forbidden: string[], packages?: string[], storageIndexOnly?: boolean }>} */
 const LAYER_RULES = {
-  app: { forbidden: [], storageIndexOnly: true },
-  features: { forbidden: ['app', 'storage'] },
-  'shared/ui': { forbidden: ['app', 'features', 'state', 'storage', 'data'] },
-  state: { forbidden: ['app', 'features', 'shared'], storageIndexOnly: true },
+  app: { forbidden: ['pwa'], storageIndexOnly: true },
+  features: { forbidden: ['app', 'storage', 'pwa'] },
+  'shared/ui': { forbidden: ['app', 'features', 'state', 'storage', 'data', 'pwa'] },
+  state: { forbidden: ['app', 'features', 'shared', 'pwa'], storageIndexOnly: true },
   storage: {
-    forbidden: ['app', 'features', 'shared', 'state', 'data', 'platform', 'i18n'],
+    forbidden: ['app', 'features', 'shared', 'state', 'data', 'platform', 'i18n', 'pwa'],
     packages: ['react', 'react-dom', 'react-i18next', 'zustand'],
   },
-  data: { forbidden: ['app', 'features', 'shared', 'state', 'storage'] },
-  platform: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'data'] },
-  i18n: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'data', 'platform'] },
+  data: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'pwa'] },
+  platform: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'data', 'pwa'] },
+  i18n: { forbidden: ['app', 'features', 'shared', 'state', 'storage', 'data', 'platform', 'pwa'] },
   // The service worker (src/pwa/sw.ts) runs apart from the page: no app code, no React.
   pwa: {
-    forbidden: LAYERS,
+    forbidden: LAYERS.filter((layer) => layer !== 'pwa'),
     packages: ['react', 'react-dom', 'react-i18next', 'i18next', 'zustand'],
   },
   domain: {
