@@ -6,8 +6,9 @@
 #                                        origin/main; "origin/*" refs are fetched first)
 #   deploy/check-pages.sh sums <file|->  React site (after a deploy): compare every file
 #                                        listed in sha256sum lines (the "Published files"
-#                                        block of the pages run summary; other lines are
-#                                        ignored, "-" reads stdin) with the live site
+#                                        block of the build job summary in the ci run;
+#                                        other lines are ignored, "-" reads stdin) with
+#                                        the live site
 #   deploy/check-pages.sh dir <path>     same as "sums" for a local build directory
 #                                        (dist/ or the unpacked github-pages artifact)
 #   deploy/check-pages.sh watch [sec]    poll the site every <sec> seconds (default: 5),
@@ -25,7 +26,7 @@ SITE_URL="${SITE_URL:-https://trajgiel.github.io/Slowo-dnia/}"
 FILES="${FILES:-index.html sw.js courses/adult.js manifest.webmanifest}"
 
 usage() {
-  sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
   exit 2
 }
 
