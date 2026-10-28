@@ -14,7 +14,7 @@ import type {
   Word,
 } from '../domain'
 import type { DeckResults } from '../storage'
-import type { AppActions, AppState, CourseLoad, Gate, Toast } from './appStore'
+import type { AppActions, AppState, BackupStatus, CourseLoad, Gate, Toast } from './appStore'
 import { AppStoreContext } from './context'
 
 function useAppStore<T>(selector: (state: AppState) => T): T {
@@ -69,3 +69,7 @@ export const useFreeQuiz = (): FreeQuizState => useAppStore((s) => s.session.fre
 export const useClock = (): (() => Date) => useAppStore((s) => s.now)
 /** Store actions; the object never changes. */
 export const useAppActions = (): AppActions => useAppStore((s) => s.actions)
+/** Text of the backup code field. */
+export const useBackupCode = (): string => useAppStore((s) => s.session.backupCode)
+/** Status line of "Резервная копия прогресса" (`null` — empty). */
+export const useBackupStatus = (): BackupStatus | null => useAppStore((s) => s.session.backupStatus)

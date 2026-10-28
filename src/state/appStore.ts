@@ -6,6 +6,7 @@ import { createStore, type StoreApi } from 'zustand/vanilla'
 import { CourseLoadError, type CourseLoadErrorKind, type LoadCourse } from '../data'
 import {
   answerDeck,
+  createBackupCode,
   DEFAULT_GENDER,
   DEFAULT_QUIZ_DIR,
   DEFAULT_QUIZ_MODE,
@@ -19,6 +20,7 @@ import {
   nextIdx,
   praiseFor,
   prepareDeck,
+  restoreBackupCode,
   toggleLearned as toggleDone,
   type CourseData,
   type CourseId,
@@ -35,7 +37,7 @@ import {
   type Weak,
   type Word,
 } from '../domain'
-import type { DeckResults, StorageRepo } from '../storage'
+import type { CourseProgress, DeckResults, StorageRepo } from '../storage'
 
 export interface AppStoreDeps {
   readonly storage: StorageRepo
@@ -73,6 +75,8 @@ export type ToastMessage =
   | { readonly id: 'courseLoadFailed' }
   | { readonly id: 'praiseAll'; readonly total: number }
   | { readonly id: 'praiseTheme'; readonly theme: string }
+  /** "Сбросить прогресс" confirmed. */
+  | { readonly id: 'progressReset' }
 
 export type ToastId = ToastMessage['id']
 
@@ -80,6 +84,23 @@ export type Toast = ToastMessage & {
   /** Grows with every toast, so the same text shown again is a new toast. */
   readonly seq: number
 }
+
+/**
+ * Status line of "Резервная копия прогресса" (materials/project/APP_SPEC.md → "7"); the app turns it into
+ * a dictionary text. `course` — the course the message is about (the open one when it was made).
+ * `codeInField` — the code is in the field, the clipboard has not answered yet; `copied` — copied,
+ * `count` learned words; `selectAndCopy` — no clipboard, the code is selected in the field;
+ * `unreadable` — not an SD1 code or broken; `otherCourse` — a code of course `other`; `noProgress` — an
+ * SD1 code of this course without progress inside; `restored` — restored, `count` learned words.
+ */
+export type BackupStatus =
+  | { readonly id: 'codeInField' }
+  | { readonly id: 'copied'; readonly course: CourseId; readonly count: number }
+  | { readonly id: 'selectAndCopy' }
+  | { readonly id: 'unreadable' }
+  | { readonly id: 'otherCourse'; readonly other: CourseId }
+  | { readonly id: 'noProgress'; readonly course: CourseId }
+  | { readonly id: 'restored'; readonly course: CourseId; readonly count: number }
 
 /** What lives between tabs and is not stored; reset when the course changes. */
 export interface Session {
@@ -94,6 +115,12 @@ export interface Session {
    * (start, course change, and later restore and reset); tab changes, marks and gender keep it.
    */
   readonly openThemes: ReadonlySet<number>
+  /**
+   * Text of the backup code field and the status line under it. Cleared with the session on course
+   * change; restore keeps both (the status shows the result), reset keeps the field and clears the status.
+   */
+  readonly backupCode: string
+  readonly backupStatus: BackupStatus | null
 }
 
 export interface AppActions {
@@ -153,6 +180,32 @@ export interface AppActions {
    * (`days` stays). Writes `done`, `weak`, `days`; the open word does not move.
    */
   toggleLearned: () => void
+  /** The backup code field was edited; nothing is written. */
+  setBackupCode: (text: string) => void
+  /**
+   * "Отправить…": saves the progress (`done`, `weak`, `days`, as the prototype `save()`) and returns the
+   * SD1 code of the open course; the field and the status do not change. `null` — no course open.
+   */
+  exportBackupCode: () => string | null
+  /**
+   * "Скопировать код": saves the progress, puts the code into the field (status "в поле ниже"), then
+   * `copy` puts it into the clipboard: the status tells "скопирован" with the learned count, or — when
+   * `copy` gives `false` — "выделен в поле" (the screen selects the field). Returns what `copy` gave.
+   */
+  copyBackupCode: (copy: (code: string) => Promise<boolean>) => Promise<boolean>
+  /**
+   * "Восстановить из кода" (confirmed) with the field's text. A code of this course replaces `done`,
+   * `weak`, `days`, clears decks and results of both directions (`architecture/react-port/storage.md` →
+   * "Когда что пишется"), reads the course again, opens a new session at the first unlearned word, keeps
+   * the field and reconciles the deck. An unreadable code, a code of another course or one without
+   * progress only sets the status; nothing is written.
+   */
+  restoreBackup: () => void
+  /**
+   * "Сбросить прогресс" (confirmed): the same writes as a restore with empty progress, the status is
+   * cleared (the field stays), the toast, the first word.
+   */
+  resetProgress: () => void
   /** A new toast replaces the shown one and starts its time again. */
   showToast: (message: ToastMessage) => void
 }
@@ -206,8 +259,12 @@ const newSession = (cur: number, words: readonly Word[] = []): Session => {
     answerShown: false,
     free: INITIAL_FREE_QUIZ,
     openThemes: new Set(theme === undefined ? [] : [theme]),
+    backupCode: '',
+    backupStatus: null,
   }
 }
+
+const EMPTY_PROGRESS: CourseProgress = { done: [], weak: {}, days: [] }
 
 type LoadResult =
   | { readonly ok: true; readonly data: CourseData }
@@ -265,6 +322,36 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
       const prepared = prepareDeck(storage.readDeck(course, quizDir), done, rng)
       if (prepared.changed) storage.writeDeck(course, quizDir, prepared.deck)
       set({ decks: { ...decks, [quizDir]: prepared.deck } })
+    }
+
+    /**
+     * Restore and reset (prototype `writeCourse` + `reloadCourse`): the progress is written and decks and
+     * results of both directions become `null`; the course state is read again (numbers outside the
+     * course drop out), a new session opens at the first unlearned word with the given field and status,
+     * then the deck is reconciled. Gender, theme, quiz mode and the other course stay.
+     */
+    function replaceProgress(
+      course: CourseId,
+      progress: CourseProgress,
+      backup: Pick<Session, 'backupCode' | 'backupStatus'>,
+    ): Done {
+      storage.replaceCourse(course, progress)
+      const stored = storage.readCourseState(course)
+      const { words } = get()
+      set({
+        done: stored.done,
+        weak: stored.weak,
+        days: stored.days,
+        decks: { ru: null, pl: null },
+        deckResults: { ru: NO_RESULTS, pl: NO_RESULTS },
+        session: { ...newSession(nextIdx(stored.done, words.length), words), ...backup },
+      })
+      get().actions.syncQuiz()
+      return stored.done
+    }
+
+    const setBackupStatus = (backupStatus: BackupStatus | null): void => {
+      set((state) => ({ session: { ...state.session, backupStatus } }))
     }
 
     /** Next "Без конца" question; the answer is hidden (prototype `nextFree`). */
@@ -466,6 +553,71 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
           get().actions.showToast({ id: 'praiseAll', total: praise.total })
         else if (praise?.kind === 'theme')
           get().actions.showToast({ id: 'praiseTheme', theme: praise.theme })
+      },
+
+      setBackupCode(text) {
+        const { session } = get()
+        if (session.backupCode !== text) set({ session: { ...session, backupCode: text } })
+      },
+
+      exportBackupCode() {
+        const { course, done, weak, days } = get()
+        if (course === null) return null
+        // Prototype `exportCode`: `save()` first, then the code of what was saved.
+        storage.writeProgress(course, { done, weak, days })
+        return createBackupCode(course, { done: [...done].sort((a, b) => a - b), weak, days })
+      },
+
+      async copyBackupCode(copy) {
+        const { course } = get()
+        const code = get().actions.exportBackupCode()
+        if (course === null || code === null) return false
+        set((state) => ({
+          session: { ...state.session, backupCode: code, backupStatus: { id: 'codeInField' } },
+        }))
+        const copied = await copy(code)
+        // The course changed while the clipboard answered: the session (field, status) is a new one.
+        if (get().course !== course) return copied
+        setBackupStatus(
+          copied ? { id: 'copied', course, count: get().done.size } : { id: 'selectAndCopy' },
+        )
+        return copied
+      },
+
+      restoreBackup() {
+        const { course, session } = get()
+        if (course === null) return
+        const result = restoreBackupCode(session.backupCode, course)
+        switch (result.kind) {
+          case 'invalid':
+            setBackupStatus({ id: 'unreadable' })
+            return
+          case 'otherCourse':
+            setBackupStatus({ id: 'otherCourse', other: result.course })
+            return
+          case 'noProgress':
+            setBackupStatus({ id: 'noProgress', course })
+            return
+          case 'restored': {
+            // Numbers outside the course are written as the prototype writes them, but are not counted:
+            // reading the course drops them (analyst/features/react-port/us-7-backup-reset.md).
+            const done = replaceProgress(course, result.progress, {
+              backupCode: session.backupCode,
+              backupStatus: null,
+            })
+            setBackupStatus({ id: 'restored', course, count: done.size })
+          }
+        }
+      },
+
+      resetProgress() {
+        const { course, session } = get()
+        if (course === null) return
+        replaceProgress(course, EMPTY_PROGRESS, {
+          backupCode: session.backupCode,
+          backupStatus: null,
+        })
+        get().actions.showToast({ id: 'progressReset' })
       },
 
       showToast(message) {

@@ -5,6 +5,7 @@ export {
   type AppState,
   type AppStore,
   type AppStoreDeps,
+  type BackupStatus,
   type CourseLoad,
   type Gate,
   type Session,
@@ -16,6 +17,8 @@ export { AppStoreProvider } from './AppStoreProvider'
 export {
   useAnswerShown,
   useAppActions,
+  useBackupCode,
+  useBackupStatus,
   useClock,
   useCourse,
   useCourseLoad,

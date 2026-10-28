@@ -9,7 +9,7 @@ import { useGate, useToast, type ToastMessage } from '../state'
 import { TabsLayout } from './TabsLayout'
 
 /** Dictionary text of a store toast. */
-function toastText(t: TFunction<['common', 'word']>, message: ToastMessage): string {
+function toastText(t: TFunction<['common', 'word', 'settings']>, message: ToastMessage): string {
   switch (message.id) {
     case 'courseLoadFailed':
       return t('toast.courseLoadFailed')
@@ -17,11 +17,13 @@ function toastText(t: TFunction<['common', 'word']>, message: ToastMessage): str
       return t('word:praise.all', { total: message.total })
     case 'praiseTheme':
       return t('word:praise.theme', { theme: message.theme })
+    case 'progressReset':
+      return t('settings:reset.toast')
   }
 }
 
 function AppToast() {
-  const { t } = useTranslation(['common', 'word'])
+  const { t } = useTranslation(['common', 'word', 'settings'])
   const toast = useToast()
   return <Toast text={toast ? toastText(t, toast) : ''} seq={toast?.seq ?? 0} />
 }
