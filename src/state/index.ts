@@ -30,6 +30,7 @@ export {
   useLearnedMarks,
   useQuizDir,
   useQuizMode,
+  useTheme,
   useThemeOpen,
   useToast,
   useWords,

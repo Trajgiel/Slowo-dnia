@@ -10,6 +10,7 @@ import type {
   Gender,
   QuizDir,
   QuizMode,
+  Theme,
   Word,
 } from '../domain'
 import type { DeckResults } from '../storage'
@@ -34,6 +35,8 @@ export const useWords = (): readonly Word[] => useAppStore((s) => s.words)
 export const useDone = (): Done => useAppStore((s) => s.done)
 /** Local dates the streak counts. */
 export const useDays = (): readonly DayKey[] => useAppStore((s) => s.days)
+/** Theme of the page. */
+export const useTheme = (): Theme => useAppStore((s) => s.theme)
 /** Gender of the open course. */
 export const useGender = (): Gender => useAppStore((s) => s.gender)
 /**

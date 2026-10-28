@@ -5,7 +5,7 @@ import './app/styles/index.css'
 import { App, appRoutes, migrateLegacyAddress } from './app'
 import { loadCourse } from './data'
 import { createI18n } from './i18n'
-import { disableScrollRestoration, primeVoices } from './platform'
+import { applyTheme, disableScrollRestoration, primeVoices } from './platform'
 import { createAppStore } from './state'
 import { storage } from './storage'
 
@@ -22,6 +22,7 @@ const store = createAppStore({
   loadCourse,
   now: () => new Date(),
   rng: Math.random,
+  applyTheme,
 })
 void store.getState().actions.start()
 

@@ -1,0 +1,65 @@
+/* "Настройки" (materials/project/APP_SPEC.md → "6.5"; tokens — design/system/README.md in the workspace):
+   contact link-buttons (one column, two from 480px — the only breakpoint) and the copyright line. */
+
+.contact {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 480px) {
+  .contact {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+a.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  min-height: var(--hit-48);
+  padding: var(--space-10) var(--space-14);
+  border: var(--border-control);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+a.btn:active {
+  transform: scale(var(--press-scale));
+}
+
+a.btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Icon size: a one-off of the link-buttons (design/system/README.md → "Одноразовые числа"). */
+a.btn svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: var(--accent);
+}
+
+.copy {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  text-align: center;
+}
+
+.copy a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.copy a:hover {
+  text-decoration: underline;
+}
