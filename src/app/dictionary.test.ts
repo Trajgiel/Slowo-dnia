@@ -9,7 +9,6 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { COURSE_IDS, TAB_NAMES } from '../domain'
 import { createI18n, defaultNS, NAMESPACES, type Namespace } from '../i18n'
-import { TOAST_IDS } from '../state'
 
 const SRC = fileURLToPath(new URL('..', import.meta.url))
 const i18n = createI18n()
@@ -18,7 +17,6 @@ const i18n = createI18n()
 const BUILT_KEYS: Readonly<Record<string, readonly string[]>> = {
   'tabs.${name}': TAB_NAMES,
   'course.${course}': COURSE_IDS,
-  'toast.${toast.id}': TOAST_IDS,
 }
 
 const sources = readdirSync(SRC, { withFileTypes: true, recursive: true })
@@ -58,8 +56,15 @@ function uses(): { literal: Use[]; built: Use[] } {
   return { literal, built }
 }
 
+/** Russian plural forms (architecture/react-port/i18n.md → "Склонения"). */
+const PLURAL_FORMS = ['one', 'few', 'many', 'other'] as const
+
+/** A plain key, or a plural key (called with `count`) that has every Russian form. */
 const exists = (namespaces: readonly string[], key: string) =>
-  namespaces.some((ns) => i18n.exists(key, { ns: ns as Namespace }))
+  namespaces.some((ns) => {
+    const has = (k: string) => i18n.exists(k, { ns: ns as Namespace })
+    return has(key) || PLURAL_FORMS.every((form) => has(`${key}_${form}`))
+  })
 
 describe('ru dictionary covers the code', () => {
   const { literal, built } = uses()

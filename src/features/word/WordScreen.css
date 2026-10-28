@@ -1,0 +1,152 @@
+/* "Слово": word card, the row under it, progress card (materials/project/APP_SPEC.md → "6.1";
+   tokens and one-off numbers — design/system/README.md in the workspace). */
+
+/* Word card with the red "notebook margin" line; 36px on the left is room for the line. */
+.word {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  min-height: 240px;
+  padding: var(--space-20) var(--space-18) var(--space-20) 36px;
+}
+
+.word::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--margin-line-left);
+  width: var(--margin-line-width);
+  background: var(--margin);
+  opacity: var(--margin-line-opacity);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  align-items: baseline;
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+.chip {
+  font-size: var(--fs-chip);
+  font-weight: 800;
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--margin);
+}
+
+.badge {
+  padding: 1px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--soft);
+  color: var(--accent);
+  font-size: var(--fs-badge);
+  font-weight: 800;
+}
+
+.badge.ok {
+  color: var(--done);
+}
+
+.word .pl {
+  margin: var(--space-4) 0 0;
+  font-size: var(--fs-word);
+  font-weight: 900;
+  line-height: var(--lh-word);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.word .tr {
+  font-family: var(--f-hand);
+  font-size: var(--fs-tr);
+  line-height: var(--lh-title);
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.word .ru {
+  font-size: var(--fs-ru);
+  font-weight: 700;
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: var(--space-8);
+}
+
+/* Progress card. */
+.prog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-16) var(--space-18);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+}
+
+.bar {
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--soft);
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--done);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar i {
+    transition: width var(--dur-bar);
+  }
+}
+
+/* Theme dots: one column per word of the theme (set inline); numbers up to "1000" fit at 320px. */
+.weekdots {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.weekdots button {
+  min-height: var(--hit-44);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--soft);
+  color: var(--muted);
+  font-size: var(--fs-dot);
+  font-weight: 800;
+  letter-spacing: var(--ls-dot);
+  font-variant-numeric: tabular-nums;
+}
+
+.weekdots button.d {
+  background: var(--done);
+  color: var(--card);
+}
+
+.weekdots button.c {
+  outline: var(--current-ring);
+  outline-offset: var(--current-ring-offset);
+  color: var(--ink);
+}
+
+.weekdots button.c.d {
+  color: var(--card);
+}
+
+.streak {
+  font-weight: 800;
+}

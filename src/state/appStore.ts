@@ -11,7 +11,9 @@ import {
   expandWords,
   INITIAL_FREE_QUIZ,
   nextIdx,
+  praiseFor,
   prepareDeck,
+  toggleLearned as toggleDone,
   type CourseData,
   type CourseId,
   type DayKey,
@@ -52,12 +54,18 @@ export interface CourseLoad {
   readonly error: CourseLoadErrorKind | null
 }
 
-/** Toast texts the store can show; the text is the dictionary key `common:toast.<id>`. */
-export type ToastId = 'courseLoadFailed'
-export const TOAST_IDS: readonly ToastId[] = ['courseLoadFailed']
+/**
+ * Toasts the store can show and the values of their texts; the app turns them into dictionary texts.
+ * `praiseAll` / `praiseTheme` — praise after "Выучили" (materials/project/APP_SPEC.md → "6.1" → "Похвала").
+ */
+export type ToastMessage =
+  | { readonly id: 'courseLoadFailed' }
+  | { readonly id: 'praiseAll'; readonly total: number }
+  | { readonly id: 'praiseTheme'; readonly theme: string }
 
-export interface Toast {
-  readonly id: ToastId
+export type ToastId = ToastMessage['id']
+
+export type Toast = ToastMessage & {
   /** Grows with every toast, so the same text shown again is a new toast. */
   readonly seq: number
 }
@@ -91,7 +99,15 @@ export interface AppActions {
   openTab: (tab: TabName) => void
   /** Deck reconciliation (prototype `renderDeck` side effect); see `architecture/react-port/storage.md`. */
   syncDeck: () => void
-  showToast: (id: ToastId) => void
+  /** Opens word `index` on "Слово" (kept within the course). */
+  showWord: (index: number) => void
+  /**
+   * "Выучили" on the open word: marks it (today's date joins `days`, praise toast) or removes the mark
+   * (`days` stays). Writes `done`, `weak`, `days`; the open word does not move.
+   */
+  toggleLearned: () => void
+  /** A new toast replaces the shown one and starts its time again. */
+  showToast: (message: ToastMessage) => void
 }
 
 export interface AppState {
@@ -126,6 +142,8 @@ export interface AppState {
   readonly session: Session
   readonly toast: Toast | null
 
+  /** The store's clock (local dates of the streak line); the same one the actions use. */
+  readonly now: () => Date
   readonly actions: AppActions
 }
 
@@ -213,7 +231,7 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
         // The loading flag stays up until the course is open, so a press in this window is cut off.
         const result = await load(course, true)
         if (!result.ok) {
-          get().actions.showToast('courseLoadFailed')
+          get().actions.showToast({ id: 'courseLoadFailed' })
           return false
         }
         try {
@@ -235,7 +253,7 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
           openCourse(course, result.data)
           set({ gate: 'ready' })
         } else {
-          get().actions.showToast('courseLoadFailed')
+          get().actions.showToast({ id: 'courseLoadFailed' })
         }
       },
 
@@ -252,8 +270,29 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
         set({ decks: { ...decks, [quizDir]: prepared.deck } })
       },
 
-      showToast(id) {
-        set((state) => ({ toast: { id, seq: (state.toast?.seq ?? 0) + 1 } }))
+      showWord(index) {
+        const { words, session } = get()
+        if (!words.length || Number.isNaN(index)) return
+        const cur = Math.min(words.length - 1, Math.max(0, Math.trunc(index)))
+        if (cur !== session.cur) set({ session: { ...session, cur } })
+      },
+
+      toggleLearned() {
+        const { course, words, done, weak, days, session } = get()
+        if (course === null || !words.length) return
+        const result = toggleDone(done, days, session.cur, deps.now())
+        set({ done: result.done, days: result.days })
+        storage.writeProgress(course, { done: result.done, weak, days: result.days })
+        if (!result.learned) return
+        const praise = praiseFor(words, result.done, session.cur)
+        if (praise?.kind === 'all')
+          get().actions.showToast({ id: 'praiseAll', total: praise.total })
+        else if (praise?.kind === 'theme')
+          get().actions.showToast({ id: 'praiseTheme', theme: praise.theme })
+      },
+
+      showToast(message) {
+        set((state) => ({ toast: { ...message, seq: (state.toast?.seq ?? 0) + 1 } }))
       },
     }
 
@@ -274,6 +313,7 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
       courseLoad: { status: 'idle', course: null, error: null },
       session: newSession(0),
       toast: null,
+      now: deps.now,
       actions,
     }
   })

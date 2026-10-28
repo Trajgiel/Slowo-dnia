@@ -56,3 +56,37 @@ button.primary {
 .full {
   width: 100%;
 }
+
+/* Done state (green): "✓ Выучили" and the quiz. */
+button.isdone {
+  background: var(--done);
+  border-color: var(--done);
+  color: var(--card);
+}
+
+/* Transparent text button: "Вернуться к новому слову", the quiz. */
+button.ghost {
+  min-height: var(--hit-44);
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+}
+
+/* Hidden but keeps its place, so what is below does not jump. */
+.inv {
+  visibility: hidden;
+}
+
+/* A number with a caption under it: progress on "Слово", quiz results. */
+.stat b {
+  display: block;
+  font-size: var(--fs-stat);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-title);
+}
+
+.stat span {
+  font-size: var(--fs-stat-label);
+  color: var(--muted);
+}
