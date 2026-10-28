@@ -1,9 +1,20 @@
+# CI for pull requests and pushes, and the deploy to GitHub Pages
+# (Settings -> Pages -> Source: "GitHub Actions", switched on release day).
+#
+# - all pull requests and pushes to develop/main: prettier, lint, typecheck, test,
+#   build (builds the site, checks it, uploads the Pages artifact) and e2e;
+# - push to main (and a manual run on main): the deploy job publishes that artifact,
+#   only after ALL the checks above are green (needs), so a red check never goes live.
+#
+# The file hashes in the build job summary are what deploy/check-pages.sh "sums"
+# compares with the live site after a deploy (ops/runbooks/pages-source.md).
 name: ci
 
 on:
   push:
     branches: [develop, main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,7 +24,8 @@ concurrency:
   # Only superseded PR runs are cancelled; every push to develop/main is checked.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# Job names are stable: they are required checks in branch protection (except e2e).
+# Job names are stable: all of them except deploy are required checks in branch protection.
+# deploy is not a required check: it does not run on pull requests.
 jobs:
   prettier:
     runs-on: ubuntu-latest
@@ -66,20 +78,55 @@ jobs:
       - name: Vitest
         run: npm test
 
+  # Builds the site and keeps it as the Pages artifact (also on pull requests,
+  # so the first real deploy is not the first build). Actions are pinned by SHA.
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - name: Vite build
+          # No dependency cache in the job that produces the published site.
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      # tsc -b && vite build; the base path /Slowo-dnia/ comes from vite.config.ts.
+      - name: Build
         run: npm run build
 
+      # Fails if sw.js, the manifest, icons, fonts with their licences or LICENSE are missing.
+      - name: Check build contents
+        run: bash deploy/check-dist.sh dist
+
+      - name: List published files
+        shell: bash
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          {
+            echo '### Published files (sha256)'
+            echo 'After the deploy: save the lines below to a file and run deploy/check-pages.sh sums FILE.'
+            echo '```'
+            find . -type f -print0 | sort -z | xargs -0 sha256sum
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
   # End-to-end tests (qa): Playwright against the production build (playwright.config.ts).
-  # Not a required check, so a slow or flaky browser run does not block merges while it is fixed.
+  # A required check too: a red run blocks the merge (and so the deploy). A false failure: Re-run all jobs.
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -104,3 +151,24 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  deploy:
+    needs: [prettier, lint, typecheck, test, build, e2e]
+    # Only on main and never for a pull request; the github-pages environment also allows main only.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Deploys one at a time; a running deployment is never cancelled halfway, the next waits.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
