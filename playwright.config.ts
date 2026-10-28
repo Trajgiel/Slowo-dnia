@@ -13,7 +13,9 @@ import { MAIN_SERVER, OFFLINE_SERVER, type E2eServer } from './e2e/servers'
 // - offline (`*.offline.spec.ts`): the service worker of the build is registered — 127.0.0.1 is a
 //   secure context — on a server and folder of its own: a test may rebuild that folder
 //   (OFFLINE_SERVER.outDir; `vite preview` reads files from disk on every request) without
-//   touching the screens project, and the service worker lives on its own origin.
+//   touching the screens project, and the service worker lives on its own origin. The transition
+//   test (release-transition.offline.spec.ts) runs its own static server on a random port instead,
+//   serving the prototype and then the screens project's build folder, which no test rebuilds.
 const OFFLINE_TESTS = '**/*.offline.spec.ts'
 
 // A small phone: the smallest screen the design briefs check.
