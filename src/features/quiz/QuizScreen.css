@@ -1,0 +1,181 @@
+/* "Опрос" (materials/project/APP_SPEC.md → "6.2"; tokens and one-off numbers — design/system/README.md
+   in the workspace: the card's 470px and the lead's 3em are exceptions of the quiz). */
+
+/* Direction switch and the "вперемешку" plate in one grid cell: the height does not change. */
+.dirwrap {
+  display: grid;
+}
+
+.dirwrap > * {
+  grid-area: 1 / 1;
+}
+
+.segnote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hit-50);
+  box-sizing: border-box;
+  color: var(--muted);
+  font-size: var(--fs-seg);
+  font-weight: 800;
+}
+
+.quizlead {
+  min-height: 3em;
+}
+
+/* The question card: top, middle and bottom spread over a fixed minimum height. */
+.quiz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  min-height: 470px;
+  padding: var(--space-20) var(--space-18);
+  text-align: center;
+}
+
+.qmid {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-12);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.qbot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  width: 100%;
+}
+
+.qbot > button,
+.qbtns button {
+  min-height: var(--hit-52);
+}
+
+.ask {
+  color: var(--muted);
+  font-size: var(--fs-ask);
+  font-weight: 700;
+}
+
+.q {
+  margin: 0;
+  font-size: var(--fs-q);
+  font-weight: 900;
+  line-height: var(--lh-q);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.q.long {
+  font-size: var(--fs-q-long);
+}
+
+.ans {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: center;
+  width: 100%;
+  padding-top: var(--space-14);
+  border-top: var(--border-dashed);
+}
+
+.ans .a {
+  font-size: var(--fs-answer);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.ans .a.long {
+  font-size: var(--fs-answer-long);
+}
+
+.ans .tr {
+  font-family: var(--f-hand);
+  font-size: var(--fs-tr);
+  line-height: var(--lh-title);
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.qbtns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.score {
+  color: var(--muted);
+  font-size: var(--fs-ask);
+  font-variant-numeric: tabular-nums;
+}
+
+.okc {
+  color: var(--done);
+}
+
+.badc {
+  color: var(--margin);
+}
+
+/* Solved deck: three tiles. */
+.rstats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.rstats .stat {
+  padding: var(--space-12) var(--space-6);
+  border-radius: var(--radius-control);
+  background: var(--soft);
+}
+
+.rstats .stat b {
+  font-size: var(--fs-result);
+}
+
+.rstats .ok b {
+  color: var(--done);
+}
+
+.rstats .bad b {
+  color: var(--margin);
+}
+
+/* Line under the card: keeps its height when empty. */
+.quizbelow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: center;
+  min-height: var(--hit-44);
+  text-align: center;
+}
+
+/* No learned words. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  padding: var(--space-24) var(--space-18);
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty b {
+  color: var(--ink);
+  font-size: var(--fs-empty);
+}
