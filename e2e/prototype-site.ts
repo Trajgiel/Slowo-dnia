@@ -1,7 +1,7 @@
 // The published prototype, served for end-to-end tests that compare the new version with it in the same
 // browser: a static site at /Slowo-dnia/ on a random port, files of the prototype commit on `main`.
 // The prototype registers its offline part only on https, so on this http server it runs without one.
-// Same source as e2e/release-transition.offline.spec.ts (PROTOTYPE_COMMIT, PROTOTYPE_DIR).
+// The source (PROTOTYPE_COMMIT, PROTOTYPE_DIR) is shared with e2e/release-transition.offline.spec.ts.
 import { execFileSync } from 'node:child_process'
 import { createReadStream, statSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 
 /** The last prototype commit on `main` (51cba24): what GitHub Pages serves until the release. */
-const PROTOTYPE_COMMIT = '51cba2452bfb211ca3f77cdeeda26083bdacc587'
+export const PROTOTYPE_COMMIT = '51cba2452bfb211ca3f77cdeeda26083bdacc587'
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -26,7 +26,7 @@ const TYPES: Record<string, string> = {
 }
 
 /** The prototype folder: PROTOTYPE_DIR, or the prototype commit unpacked into `dir`. */
-function preparePrototype(dir: string): string {
+export function preparePrototype(dir: string): string {
   if (process.env.PROTOTYPE_DIR) return resolve(process.env.PROTOTYPE_DIR)
   const archive = `${dir}.tar`
   try {
@@ -55,7 +55,13 @@ export interface PrototypeSite {
 export async function startPrototype(dir: string): Promise<PrototypeSite> {
   const root = preparePrototype(dir)
   const server: Server = createServer((req, res) => {
-    const path = decodeURIComponent(new URL(req.url ?? '/', 'http://site').pathname)
+    let path: string
+    try {
+      path = decodeURIComponent(new URL(req.url ?? '/', 'http://site').pathname)
+    } catch {
+      res.writeHead(404, { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' }).end()
+      return
+    }
     let file = path.startsWith('/Slowo-dnia/')
       ? resolve(root, `.${path.slice('/Slowo-dnia'.length)}`)
       : ''

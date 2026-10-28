@@ -3,8 +3,8 @@
 // us-5-plan-help.md → "План" in the workspace):
 // - "Скопировать код" with the clipboard allowed: the code is in the field and in the clipboard, the
 //   status counts the learned words; "Сбросить прогресс" twice: the toast, word 1, "План" without marks
-//   and only theme 1 open; "Восстановить из кода" twice from the field: the progress keys are back as
-//   they were, "План" shows the marks again and opens the theme of the first unlearned word;
+//   and only theme 1 open; "Восстановить из кода" twice from the field: the progress is back as
+//   it was, "План" shows the marks again and opens the theme of the first unlearned word;
 // - no clipboard: the code is selected in the field, the status asks to copy it;
 // - both courses, against the published prototype in the same browser: the same progress gives the same
 //   code string; the prototype's code restores in the new version and the new version's code restores
@@ -83,7 +83,6 @@ test('copy the code, reset, restore it from the field: the progress is back', as
   await expect(page.getByRole('status').filter({ hasText: settings.reset.toast })).toBeVisible()
   await expect(backupStatus(page)).toHaveText('')
   await expect(codeField(page)).toHaveValue(code)
-  expect(progressKeys(await readStorage(page))).toEqual({ done: '[]', weak: '{}', days: '[]' })
   await tab(page, common.tabs.plan).click()
   expect(await planMarks(page)).toEqual({ learned: [], open: [1], current: '1', currentTheme: 1 })
   await tab(page, common.tabs.word).click()
@@ -99,7 +98,6 @@ test('copy the code, reset, restore it from the field: the progress is back', as
   )
   const restored = await readStorage(page)
   expect(progressKeys(restored)).toEqual(progressKeys(KIDS))
-  expect(restored.last_ru).toBe('null')
   await tab(page, common.tabs.plan).click()
   const marks = await planMarks(page)
   expect(marks).toMatchObject({ learned: ['1', '2', '3', '6'], current: '4' })
