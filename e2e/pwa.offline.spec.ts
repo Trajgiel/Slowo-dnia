@@ -11,8 +11,8 @@
 //   back;
 // - every request of the page and of the service worker stays on the site's origin;
 // - two builds in a row: with the network the second build is shown on the first open, no reload;
-//   its offline part then holds only the second build's set (no files of the first, no prototype
-//   cache `slowo-dnia-*`) and storage is untouched; without the network the second build opens whole.
+//   its offline part then holds only the second build's set (no files of the first, no other cache)
+//   and storage is untouched; without the network the second build opens whole.
 // Not here: the set and the manifest of the build -> tests/pwa-build.acceptance.test.ts; the
 // registration condition and the page/legacy cache logic on fakes -> src/platform/serviceWorker.test.ts,
 // src/pwa/offline.test.ts; tabs and addresses with the network -> e2e/tabs-history.spec.ts; the
@@ -238,11 +238,6 @@ test('two builds in a row: the second is shown on the first open and replaces th
   await expectTab(page, 'word')
   await waitForOfflinePart(page)
   expect(await pageVersion(page)).toEqual({ page: 'v1', code: 'v1' })
-  // The prototype's cache, as an installed user of the prototype has it.
-  await page.evaluate(async () => {
-    const legacy = await caches.open('slowo-dnia-v6')
-    await legacy.put('./index.html', new Response('prototype page'))
-  })
   const storage = await readStorage(page)
 
   const second = await buildVersion('v2')
