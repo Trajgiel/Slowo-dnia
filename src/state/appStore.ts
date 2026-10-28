@@ -536,7 +536,7 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
 
       showWord(index) {
         const { words, session } = get()
-        if (!words.length) return
+        if (!words.length || Number.isNaN(index)) return
         const cur = Math.min(words.length - 1, Math.max(0, Math.trunc(index)))
         if (cur !== session.cur) set({ session: { ...session, cur } })
       },
