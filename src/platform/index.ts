@@ -10,3 +10,9 @@ export {
 } from './speech'
 export { applyTheme, THEME_COLOR } from './theme'
 export { canShare, copyText, shareText, type ShareHost } from './share'
+export {
+  registerServiceWorker,
+  shouldRegisterServiceWorker,
+  type ServiceWorkerEnv,
+  type ServiceWorkerHost,
+} from './serviceWorker'
