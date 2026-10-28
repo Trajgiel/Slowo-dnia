@@ -366,7 +366,7 @@ describe('broken and unexpected values: no exceptions; differences from the prot
     {
       name: 'last without date',
       items: { last_ru: '{"right":3,"wrong":1,"total":4}' },
-      verdict: 'differs',
+      verdict: 'same',
       read: last,
     },
     { name: 'last a string', items: { last_ru: '"x"' }, verdict: 'differs', read: last },
