@@ -1,11 +1,12 @@
 // "Настройки" tab (analyst/features/react-port/us-6-settings.md; materials/project/APP_SPEC.md →
 // "6.5. Настройки"). Cards top to bottom: "Курс", "Кто учится", "Тема", "Установить как приложение",
-// then the place of "Резервная копия прогресса" and "Начать заново" (SD-17), "Контакты", the copyright.
+// "Резервная копия прогресса", "Начать заново" (`BackupCards.tsx`), "Контакты", the copyright.
 // Course, gender and theme come from the store; their actions write the storage.
 import { Trans, useTranslation } from 'react-i18next'
 import type { CourseId, Gender, Theme } from '../../domain'
 import { Segmented } from '../../shared/ui'
 import { useAppActions, useCourse, useGender, useTheme } from '../../state'
+import { BackupCard, ResetCard } from './BackupCards'
 import { LINKEDIN_URL, TELEGRAM_URL } from './contacts'
 import { LinkedInIcon, TelegramIcon } from './icons'
 import './SettingsScreen.css'
@@ -153,7 +154,8 @@ export function SettingsScreen() {
       <GenderCard t={t} course={course} />
       <ThemeCard t={t} />
       <InstallCard t={t} />
-      {/* "Резервная копия прогресса" and "Начать заново" go here (SD-17). */}
+      <BackupCard course={course} />
+      <ResetCard course={course} />
       <ContactsCard t={t} />
       <p className="copy">
         <Trans
