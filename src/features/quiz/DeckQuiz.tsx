@@ -38,7 +38,14 @@ export function DeckQuiz({ press, onSpeak }: QuizModeProps) {
   const answerShown = useAnswerShown()
   const { showAnswer, answerQuiz, restartDeck } = useAppActions()
 
-  if (!deck) return <div className="card quiz" />
+  if (!deck) {
+    return (
+      <>
+        <div className="card quiz" />
+        <div className="quizbelow" />
+      </>
+    )
+  }
   const state = deckState(deck, done)
   const dirLabel = dir === 'ru' ? t('dir.ru') : t('dir.pl')
 
@@ -81,7 +88,7 @@ export function DeckQuiz({ press, onSpeak }: QuizModeProps) {
             {/* The line keeps its height when empty (the prototype puts a no-break space there). */}
             <div className="score">
               {summary.nextDeckSize === null
-                ? ' '
+                ? '\u00a0'
                 : t('deck.nextSize', { count: summary.nextDeckSize })}
             </div>
           </div>

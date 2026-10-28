@@ -1,7 +1,8 @@
 // "Резервная копия прогресса" and "Начать заново" cards (analyst/features/react-port/us-7-backup-reset.md):
 // texts with the open course, "Отправить…" only with the system share, the field, status lines with the
 // "слово / слова / слов" forms, the clipboard and share outcomes, both twice-pressed buttons and leaving
-// the tab after the first press. Storage writes are the store test's (state/appStore.backup.test.ts).
+// the tab after the first press. Storage writes are the store test's (state/appStore.backup.test.ts);
+// no clipboard (the code selected in the field) -> e2e/backup.spec.ts (qa).
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createBackupCode } from '../../domain'
@@ -106,18 +107,6 @@ describe('copy and share', () => {
     const code = createBackupCode('kids', { done: [0, 1, 2], weak: {}, days: [] })
     expect(writeText).toHaveBeenCalledWith(code)
     expect(field()).toHaveValue(code)
-  })
-
-  it('no clipboard: the code is selected in the field, "выделен в поле ниже"', async () => {
-    await renderSettings()
-    fireEvent.click(button(settings.backup.copy))
-    await waitFor(() => {
-      expect(statusLine()).toHaveTextContent(status.selectAndCopy)
-    })
-    const box = field()
-    expect(box.value).toMatch(/^SD1\.k\./)
-    expect(document.activeElement).toBe(box)
-    expect([box.selectionStart, box.selectionEnd]).toEqual([0, box.value.length])
   })
 
   it.each([

@@ -19,42 +19,18 @@
 // e2e/pwa.offline.spec.ts; old addresses with the network -> e2e/tabs-history.spec.ts; prototype
 // storage formats read by the app -> unit tests of src/storage and src/state.
 import { expect, test, type Page, type Request } from '@playwright/test'
-import { execFileSync } from 'node:child_process'
 import { createReadStream, readFileSync, statSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import common from '../src/i18n/locales/ru/common.json' with { type: 'json' }
+import { preparePrototype } from './prototype-site'
 import { MAIN_SERVER } from './servers'
 import { collectPageErrors, readStorage } from './support'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const REACT_DIR = join(ROOT, MAIN_SERVER.outDir)
-
-/** The last prototype commit on `main` (51cba24): what GitHub Pages serves until the release. */
-const PROTOTYPE_COMMIT = '51cba2452bfb211ca3f77cdeeda26083bdacc587'
-
-/** The prototype folder: PROTOTYPE_DIR, or the prototype commit unpacked into `dir`. */
-function preparePrototype(dir: string): string {
-  if (process.env.PROTOTYPE_DIR) return resolve(process.env.PROTOTYPE_DIR)
-  const archive = `${dir}.tar`
-  try {
-    execFileSync('git', ['archive', '--output', archive, PROTOTYPE_COMMIT], {
-      cwd: ROOT,
-      stdio: 'pipe',
-    })
-  } catch (error) {
-    throw new Error(
-      `The prototype commit ${PROTOTYPE_COMMIT} is not in this checkout: fetch the full history ` +
-        '(CI: fetch-depth: 0) or set PROTOTYPE_DIR to a copy of the prototype.',
-      { cause: error },
-    )
-  }
-  execFileSync('mkdir', ['-p', dir])
-  execFileSync('tar', ['-xf', archive, '-C', dir])
-  return dir
-}
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
