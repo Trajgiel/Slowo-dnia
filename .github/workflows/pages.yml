@@ -1,23 +1,29 @@
-# Publish the site to GitHub Pages (Settings -> Pages -> Source: "GitHub Actions").
-# Today the site is the static prototype, published as is: no build step,
-# the files below are copied byte for byte (sw.js must stay identical so the
-# installed app's offline cache "slowo-dnia-v6" is not updated).
-# The React build replaces the "Stage site files" step in SD-19.
+# Build the React app and publish it to GitHub Pages
+# (Settings -> Pages -> Source: "GitHub Actions", switched on release day).
+#
+# - push to main and manual runs on main: build -> check -> upload -> deploy;
+# - pull requests (into develop and main): the same build, check and upload,
+#   without the deploy job, so the first real deploy is not the first build.
+#
+# The file hashes in the run summary are what deploy/check-pages.sh "sums"
+# compares with the live site after a deploy (ops/runbooks/pages-source.md).
 name: pages
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 # Nothing by default; each job asks only for what it needs.
 permissions: {}
 
-# One Pages deployment at a time; a running deployment is never cancelled
-# halfway, the next one waits in the queue.
+# Deploys: one at a time, a running deployment is never cancelled halfway,
+# the next one waits in the queue. Pull requests: their own group per PR,
+# a newer push to the PR cancels the older build.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -31,37 +37,32 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Stage site files
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=(
-            index.html
-            sw.js
-            manifest.webmanifest
-            courses
-            icons
-            fonts
-            LICENSE
-            README.md
-            .nojekyll
-          )
-          mkdir _site
-          for f in "${files[@]}"; do
-            if [ ! -e "$f" ]; then
-              echo "::error::Missing site file: $f"
-              exit 1
-            fi
-            cp -R -- "$f" _site/
-          done
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          # No dependency cache in the job that produces the published site.
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      # tsc -b && vite build; the base path /Slowo-dnia/ comes from vite.config.ts.
+      - name: Build
+        run: npm run build
+
+      # Fails if sw.js, the manifest, icons, fonts with their licences or LICENSE are missing.
+      - name: Check build contents
+        run: bash deploy/check-dist.sh dist
 
       - name: List published files
         shell: bash
-        working-directory: _site
+        working-directory: dist
         run: |
           set -euo pipefail
           {
             echo '### Published files (sha256)'
+            echo 'After the deploy: save the lines below to a file and run deploy/check-pages.sh sums FILE.'
             echo '```'
             find . -type f -print0 | sort -z | xargs -0 sha256sum
             echo '```'
@@ -70,15 +71,13 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: _site
-          # Needed for .nojekyll; .git and .github are excluded by the action regardless.
-          include-hidden-files: true
+          path: dist
 
   deploy:
     needs: build
-    # Deploy only from main (a manual run from another branch builds but does not deploy);
+    # Deploy only on main and never for a pull request (a PR run only builds and uploads);
     # the github-pages environment also allows main only.
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
