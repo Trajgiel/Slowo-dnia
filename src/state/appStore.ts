@@ -43,6 +43,11 @@ export interface AppStoreDeps {
   /** Current time (local dates of `days` and deck results). */
   readonly now: () => Date
   readonly rng: Rng
+  /**
+   * Puts the theme on the page (`platform/theme`): `data-theme` and the browser bar color. The app
+   * passes `applyTheme`; tests may leave it out.
+   */
+  readonly applyTheme?: (theme: Theme) => void
 }
 
 /**
@@ -132,6 +137,13 @@ export interface AppActions {
   restartDeck: () => void
   /** "Другое слово": the next "Без конца" question, nothing is written. */
   skipFree: () => void
+  /** "Тема" in "Настройки": writes `theme` and puts it on the page at once. */
+  setTheme: (theme: Theme) => void
+  /**
+   * "Кто учится" in "Настройки": writes `P+kid`, the words take the gender's forms, then the deck is
+   * reconciled. Word numbers, progress, the open word, open themes of "План" and the quiz stay.
+   */
+  setGender: (gender: Gender) => void
   /** A theme on "План" was opened or closed; nothing is written. */
   setThemeOpen: (theme: number, open: boolean) => void
   /** Opens word `index` on "Слово" (kept within the course). */
@@ -409,6 +421,21 @@ export function createAppStore(deps: AppStoreDeps): AppStore {
       skipFree() {
         if (get().course === null) return
         pickNextFree()
+      },
+
+      setTheme(theme) {
+        set({ theme })
+        storage.writeTheme(theme)
+        deps.applyTheme?.(theme)
+      },
+
+      setGender(gender) {
+        const { course, courseData } = get()
+        if (course === null || courseData === null) return
+        // Written on every press, as the prototype does; the same gender draws nothing new.
+        storage.writeGender(course, gender)
+        if (gender !== get().gender) set({ gender, words: expandWords(courseData, gender) })
+        get().actions.syncQuiz()
       },
 
       setThemeOpen(theme, open) {
